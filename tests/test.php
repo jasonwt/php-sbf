@@ -29,7 +29,7 @@
 
 
     foreach ($parent as $k => $v) {
-        dtprint($k, "\n\n");
+        dtprint($k . ": ", $v, "\n\n");
     }
 
     dtprint("\n", $parent->GetComponentStructure(), "\n");

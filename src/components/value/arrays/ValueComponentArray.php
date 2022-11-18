@@ -34,8 +34,61 @@
             parent::__construct($name, $components, $extensions, $errorHandler);
 
             $this->options = self::ALLOW_SET + self::ALLOW_GET + self::ALLOW_UNSET;
-        }        
+        }
+        
+        /**
+         * Offset to retrieve
+         * Returns the value at specified offset.
+         *
+         * @param mixed $offset The offset to retrieve.
+         * @return mixed Can return all value types.
+         */
+        public function offsetGet($offset) {
+            $returnValue = null;
+
+            if ($this->options && self::ALLOW_GET) {
+                if (is_null($component = $this->GetComponent($offset)))
+                    $this->AddError(E_USER_WARNING, "fffset '$offset' was not found.");
+                else    
+                    $returnValue = $component->GetValue();
+            } else {
+                $this->AddError(E_USER_ERROR, "offsetGet() is not permitted.");
+            }
+
+            return $returnValue;
+            //return $this->ProcessHook("offsetGet_FRHOOK", [$this, $returnValue, $offset]);            
+        }
+
+        /**
+         * Assigns a value to the specified offset.
+         *
+         * @param mixed $offset The offset to assign the value to.
+         * @param mixed $value The value to set.
+         */
+        public function offsetSet($offset, $value) {
+            $error = [];
+
+            if (array_key_exists($offset, $this->components)) {
+                if ($this->options & self::ALLOW_SET_ON_FOUND || $this->options & self::ALLOW_SET) {                        
+                    if (!is_null($component = $this->GetComponent($offset)))
+                        $component->SetValue($value);
+                } else {
+                    $this->AddError(E_USER_ERROR, "offsetSet() is not permitted for EXISTING components.");
+                    return;
+                }
+            } else {
+                if (!($this->options & self::ALLOW_SET_ON_NOT_FOUND || $this->options & self::ALLOW_SET)) {
+                    $this->AddError(E_USER_ERROR, "offsetSet() is not permitted for NEW components.");
+                    return;
+                } else {
+                    $this->AddComponent(new ValueComponent($offset, $value));
+                }
+            }
+        }
+
     }
+
+    
 
 
 ?>
