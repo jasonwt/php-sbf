@@ -12,6 +12,7 @@
     use sbf\components\ComponentObjectArrayTraits;
     use sbf\components\ComponentArrayAccessTraits;
     use sbf\components\ComponentCountableIteratorTraits;
+    use sbf\components\ComponentErrorTraits;
 
     use function sbf\debugging\dtprint;
 
@@ -19,6 +20,7 @@
         use ComponentObjectArrayTraits;
         use ComponentArrayAccessTraits;
         use ComponentCountableIteratorTraits;
+        use ComponentErrorTraits;
 
         const ALLOW_SET              = 1;
         const ALLOW_SET_ON_FOUND     = 2;
@@ -81,37 +83,20 @@
             throw new \BadMethodCallException(get_class($this) . "::" . $methodName);
         }
 
-        public function GetError(?int $errorIndex = null) : ?string {
-            $this->ProcessHook("GetError_FIHOOK", [$this, &$errorIndex]);
+        public function CanCall(string $methodName) : bool {
+            $this->ProcessHook("CanCall_FIHOOK", [$this, &$methodName]);
 
-            return $this->ProcessHook("GetError_FRHOOK", [$this, $this->errorHandler->GetError($errorIndex), $errorIndex]);
-        }
-        public function GetErrors() : array {
-            $this->ProcessHook("GetErrors_FIHOOK", [$this]);
+            $canCall = false;
 
-            return $this->ProcessHook("GetErrors_FRHOOK", [$this, $this->errorHandler->GetErrors()]);
-        }
-        public function GetErrorCount() : int {
-            $this->ProcessHook("GetErrorCount_FIHOOK", [$this]);
+            if (method_exists($this, $methodName)) {
+                $reflection = new \ReflectionMethod($this, $methodName);
+                $canCall = $reflection->isPublic();
+            }
 
-            return $this->ProcessHook("GetErrorCount_FRHOOK", [$this, $this->errorHandler->GetErrorCount()]);
-        }
-        protected function ClearError(int $errorIndex) : bool {
-            $this->ProcessHook("ClearError_FIHOOK", [$this, &$errorIndex]);
-
-            return $this->ProcessHook("ClearError_FRHOOK", [$this, $this->ClearError($errorIndex), $errorIndex]);
-        }
-        protected function ClearErrors() {
-            $this->ProcessHook("ClearErrors_FIHOOK", [$this]);
-
-            $this->ProcessHook("ClearErrors_FRHOOK", [$this, $this->errorHandler->ClearErrors()]);
+            return $this->ProcessHook("CanCall_FRHOOK", [$this, $canCall, $methodName]);
         }
 
-        protected function AddError(int $errorCode, string $errorMessage) : bool {
-            $this->ProcessHook("AddError_FIHOOK", [$this, &$errorCode, &$errorMessage]);
-
-            return $this->ProcessHook("AddError_FRHOOK", [$this, $this->errorHandler->AddError($errorCode, $errorMessage), $errorCode, $errorMessage]);
-        }
+        
 
         public function GetName() : string {
             $this->ProcessHook("GetName_FIHOOK", [$this]);
@@ -160,18 +145,6 @@
 
             return $this->ProcessHook("GetParent_FRHOOK", [$this, $this->parent]);
         }
-
-        public function CanCall(string $methodName) : bool {
-            $this->ProcessHook("CanCall_FIHOOK", [$this, &$methodName]);
-
-            $reflection = new \ReflectionMethod($this, $methodName);
-
-            return $this->ProcessHook("CanCall_FRHOOK", [$this, $reflection->isPublic(), $methodName]);
-        }
-
-        
-
-        
 
         /* 
         EXTENSIONS METHODS 
@@ -294,7 +267,6 @@
         }
 
         protected function RemoveComponent(Component $component) : bool {
-            usleep(1000);
             $this->ProcessHook("RemoveComponent_FIHOOK", [$this, &$component]);
             
             $returnValue = $this->ObjectArrayRemoveElement($this->components, $component);

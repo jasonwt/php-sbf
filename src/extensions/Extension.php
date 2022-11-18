@@ -15,7 +15,22 @@
         }
 
         protected function InitExtension() : bool {
-            return true;
+            $this->ProcessHook("InitExtension_FIHOOK", [$this]);
+
+            return $this->ProcessHook("InitExtension_FRHOOK", [$this, true]);
+        }
+
+        protected function DisabledPublicCanCallMethods() : array {
+            $this->ProcessHook("DisabledPublicCanCallMethods_FIHOOK", [$this]);
+
+            return $this->ProcessHook("DisabledPublicCanCallMethods_FRHOOK", [$this, []]);
+        }
+
+        public function CanCall(string $methodName) : bool {
+            if (in_array($methodName, $this->DisabledPublicCanCallMethods()))
+                return false;            
+
+            return parent::CanCall($methodName);            
         }
     }
 ?>

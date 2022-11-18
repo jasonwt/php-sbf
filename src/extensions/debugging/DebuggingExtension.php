@@ -22,14 +22,14 @@
         protected function GetStructure(Component $component, int $indentLevel) : string {
             $returnValue = "";
 
-            $returnValue .= str_repeat("\t", $indentLevel) . "Class Type    : " . get_class($component) . "\n";
-            $returnValue .= str_repeat("\t", $indentLevel) . "Name          : " . $component->GetName() . "\n";
+            $returnValue .= str_repeat("\t", $indentLevel) . "CLASS TYPE : " . get_class($component) . "\n";
+            $returnValue .= str_repeat("\t", $indentLevel) . "NAME       : " . $component->GetName() . "\n";
 
             if (!is_null($component->GetParent()))
-                $returnValue .= str_repeat("\t", $indentLevel) . "PARENT        : " . $component->GetParent()->GetName() . "\n";
+                $returnValue .= str_repeat("\t", $indentLevel) . "PARENT     : " . $component->GetParent()->GetName() . "\n";
 
             if (method_exists($component, "GetValue"))
-                $returnValue .= str_repeat("\t", $indentLevel) . "Value         : " . $component->GetValue() . "\n";
+                $returnValue .= str_repeat("\t", $indentLevel) . "VALUE      : " . $component->GetValue() . "\n";
 
             if ($component->GetErrorCount() > 0) {
                 $returnValue .= str_repeat("\t", $indentLevel) . "ERRORS:\n\n";
