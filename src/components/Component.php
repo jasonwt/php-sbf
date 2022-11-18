@@ -9,10 +9,13 @@
     use sbf\errorhandler\ErrorHandler;
     use sbf\components\ComponentInterface;
     use sbf\extensions\Extension;
+    use sbf\components\ComponentObjectArrayTraits;
 
     use function sbf\debugging\dtprint;
 
     class Component implements ComponentInterface {
+        use ComponentObjectArrayTraits;
+
         const ALLOW_SET              = 1;
         const ALLOW_SET_ON_FOUND     = 2;
         const ALLOW_SET_ON_NOT_FOUND = 4;
@@ -24,10 +27,11 @@
         protected $name = "";
         protected ?Component $parent = null;
         protected array $components = [];
+        protected array $extensions = [];
 
         private ErrorHandler $errorHandler;
 
-        public function __construct(string $name, $components = null, ?ErrorHandler $errorHandler = null) {
+        public function __construct(string $name, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             $this->errorHandler = (is_null($errorHandler) ? new ErrorHandler() : $errorHandler);
 
             if (($this->name = trim($name)) == "")                 
@@ -47,16 +51,28 @@
                     }
                 }
             }
+
+            if (!is_null($extensions)) {
+                if (!is_array($extensions))
+                    $extensions = [$extensions];
+
+                foreach ($extensions as $extensions) {
+                    if (!is_object($extensions)) {
+                        $this->AddError(E_USER_ERROR, "Invalid extension type '" . gettype($extensions) . "'. Must be derived from Extension.");
+                    } else if (!($extensions instanceof Extension)) {
+                        $this->AddError(E_USER_ERROR, "Invalid extension type '" . get_class($extensions) . "'. Must be derived from Extension.");
+                    } else {
+                        $this->AddExtension($extensions);
+                    }
+                }
+            }
             
         }
 
         public function __call(string $methodName, array $arguments) {
-
-//            dtprint("__call(", $methodName, ", ", $arguments, ")\n", $this);
-
-            foreach ($this->GetComponents("sbf\\extensions\\ExtensionInterface") as $extension) {
+            foreach ($this->extensions as $extensionName => $extension) {
                 if ($extension->CanCall($methodName))
-                    return call_user_func_array([$extension, $methodName], $arguments);                                
+                    return call_user_func_array([$extension, $methodName], $arguments);
             }
 
             throw new \BadMethodCallException(get_class($this) . "::" . $methodName);
@@ -148,12 +164,6 @@
             $reflection = new \ReflectionMethod($this, $methodName);
 
             return $this->ProcessHook("CanCall_FRHOOK", [$this, $reflection->isPublic(), $methodName]);
-        }
-
-        protected function RegisterExtension(Extension $extension) : bool {
-            $this->ProcessHook("RegisterExtension_FIHOOK", [$this, &$extension]);
-
-            return $this->ProcessHook("RegisterExtension_FRHOOK", [$this, $this->AddComponent($extension), $extension]);
         }
 
         /**
@@ -326,39 +336,91 @@
             );            
         }
 
-        protected function GetNumberOfComponents(string $componentType = "") : int {
-            $this->ProcessHook("GetNumerOfComponents_FIHOOK", [$this, &$componentType]);            
 
-            return $this->ProcessHook("GetComponents_FRHOOK", [$this, count($this->GetComponents($componentType)), $componentType]);
+
+        protected function GetExtensionsCount(string $extensionType = "") : int {
+            $this->ProcessHook("GetExtensionsCount_FIHOOK", [$this, &$extensionType]);
+
+            $returnValue = $this->GetObjectArrayElementCount($this->extensions, $extensionType);
+
+            return $this->ProcessHook("GetExtensionsCount_FRHOOK", [$this, $returnValue, $extensionType]);
+        }
+
+        protected function GetExtensions(string $extensionType = "") : array {
+            $this->ProcessHook("GetExtensions_FIHOOK", [$this, &$extensionType]);
+
+            $returnValue = $this->GetObjectArrayElements($this->extensions, $extensionType);
+
+            return $this->ProcessHook("GetExtensions_FRHOOK", [$this, $returnValue, $extensionType]);
+        }
+
+        protected function GetExtensionNames(string $extensionType = "") : array {
+            $this->ProcessHook("GetExtensionNames_FIHOOK", [$this]);
+
+            $returnValue = $this->GetObjectArrayElementKeys($this->extensions, $extensionType);            
+            
+            return $this->ProcessHook("GetExtensionNames_FRHOOK", [$this, $returnValue]);
+        }
+
+        protected function GetExtension(string $name) : ?Extension {
+            $this->ProcessHook("GetExtension_FIHOOK", [$this, &$name]);
+
+            $returnValue = $this->GetObjectArrayElement($this->extensions, $name);            
+
+            return $this->ProcessHook("GetExtension_FRHOOK", [$this, $returnValue, $name]);
+        }
+
+        protected function ExtensionExists(Extension $extension) : bool {
+            $this->ProcessHook("ExtensionExists_FIHOOK", [$this, &$extension]);
+
+            $returnValue = $this->ObjectArrayElementExists($this->extensions, $extension);
+            
+            return $this->ProcessHook("ExtensionExists_FRHOOK", [$this, $returnValue, $extension]);
+        }
+
+        protected function AddExtension(Extension $extension) : bool {
+            $this->ProcessHook("AddExtension_FIHOOK", [$this, &$extension]);
+
+            $returnValue = $this->ObjectArrayAddElement($this->extensions, $extension);            
+
+            if ($returnValue)
+                $returnValue = $extension->InitExtension();            
+
+            return $this->ProcessHook("AddExtension_FRHOOK", [$this, $returnValue, $extension]);
+        }
+
+        protected function RemoveExtension(Extension $extension) : bool {
+            $this->ProcessHook("RemoveExtension_FIHOOK", [$this, &$extension]);
+            
+            $returnValue = $this->ObjectArrayRemoveElement($this->extensions, $extension);
+
+            return $this->ProcessHook("RemoveExtension_FRHOOK", [$this, $returnValue, $extension]);
+        }
+
+
+
+
+
+        protected function GetComponentsCount(string $componentType = "") : int {
+            $this->ProcessHook("GetComponentsCount_FIHOOK", [$this, &$componentType]);
+
+            $returnValue = $this->GetObjectArrayElementCount($this->components, $componentType);
+
+            return $this->ProcessHook("GetComponentsCount_FRHOOK", [$this, $returnValue, $componentType]);
         }
 
         protected function GetComponents(string $componentType = "") : array {
             $this->ProcessHook("GetComponents_FIHOOK", [$this, &$componentType]);
 
-            $componentType = trim($componentType);
+            $returnValue = $this->GetObjectArrayElements($this->components, $componentType);
 
-            $results = $this->components;
-
-            if (($componentType = trim($componentType)) != "" ) {
-                $results = array_filter($results, function ($v, $k) use ($componentType) {
-                    return is_a($v, $componentType);
-                }, ARRAY_FILTER_USE_BOTH);
-            }
-
-            return $this->ProcessHook("GetComponents_FRHOOK", [$this, $results, $componentType]);
+            return $this->ProcessHook("GetComponents_FRHOOK", [$this, $returnValue, $componentType]);
         }
 
         protected function GetComponentNames(string $componentType = "") : array {
             $this->ProcessHook("GetComponentNames_FIHOOK", [$this]);
 
-            $componentType = trim($componentType);
-            
-            $returnValue = [];
-
-            foreach ($this->components as $componentName => $component) {
-                if ($componentType == "" || is_a($component, $componentType))
-                    $returnValue[] = $componentName;
-            }
+            $returnValue = $this->GetObjectArrayElementKeys($this->components, $componentType);            
             
             return $this->ProcessHook("GetComponentNames_FRHOOK", [$this, $returnValue]);
         }
@@ -366,19 +428,39 @@
         protected function GetComponent(string $name) : ?Component {
             $this->ProcessHook("GetComponent_FIHOOK", [$this, &$name]);
 
-            if (!array_key_exists($name, $this->components)) {
-                $this->AddError(E_USER_ERROR, "No component exists with the name of '$name'");                
+            $returnValue = $this->GetObjectArrayElement($this->components, $name);            
 
-                return $this->ProcessHook("GetComponent_FRHOOK", [$this, null, $name]);
-            }
-
-            return $this->ProcessHook("GetComponent_FRHOOK", [$this, $this->components[$name], $name]);
+            return $this->ProcessHook("GetComponent_FRHOOK", [$this, $returnValue, $name]);
         }
 
         protected function ComponentExists(Component $component) : bool {
             $this->ProcessHook("ComponentExists_FIHOOK", [$this, &$component]);
+
+            $returnValue = $this->ObjectArrayElementExists($this->components, $component);
             
-            return $this->ProcessHook("ComponentExists_FRHOOK", [$this, in_array($component, $this->components, true), $component]);
+            return $this->ProcessHook("ComponentExists_FRHOOK", [$this, $returnValue, $component]);
+        }
+
+        protected function AddComponent(Component $component) : bool {
+            if ($component instanceof Extension) {
+                $this->AddError(E_USER_ERROR, "Use AddExtension rather then AddComponent when adding extensions.");
+                return false;
+            }
+
+            $this->ProcessHook("AddComponent_FIHOOK", [$this, &$component]);
+
+            $returnValue = $this->ObjectArrayAddElement($this->components, $component);                        
+
+            return $this->ProcessHook("AddComponent_FRHOOK", [$this, $returnValue, $component]);
+        }
+
+        protected function RemoveComponent(Component $component) : bool {
+            usleep(1000);
+            $this->ProcessHook("RemoveComponent_FIHOOK", [$this, &$component]);
+            
+            $returnValue = $this->ObjectArrayRemoveElement($this->components, $component);
+
+            return $this->ProcessHook("RemoveComponent_FRHOOK", [$this, $returnValue, $component]);
         }
 
         protected function ProcessHook($hookName, array $parameters = [])  {
@@ -394,6 +476,11 @@
                     if (method_exists($component, $hookName))
                         $tmpParameters[1] = call_user_func_array([$component, $hookName], $tmpParameters);
                 }
+
+                foreach ($this->extensions as $extension) {
+                    if (method_exists($extension, $hookName))
+                        $tmpParameters[1] = call_user_func_array([$extension, $hookName], $tmpParameters);
+                }
                 
                 return $parameters[1];
 
@@ -403,6 +490,9 @@
 
                 foreach ($this->components as $component)
                     $component->ProcessHook($hookName, $parameters);
+
+                foreach ($this->extensions as $extension)
+                    $extension->ProcessHook($hookName, $parameters);
 
                 return;
             }
@@ -414,53 +504,7 @@
 
 
 
-        protected function AddComponent(Component $component) : bool {
-            usleep(1000);
-            $this->ProcessHook("AddComponent_FIHOOK", [$this, &$component]);
-
-            if (in_array($component, $this->components, true)) {
-                $this->AddError(E_USER_ERROR, "The component already exists");
-                
-                return $this->ProcessHook("AddComponent_FRHOOK", [$this, false, $component]);
-            }
-
-            if (array_key_exists($component->GetName(), $this->components)) {
-                $this->AddError(E_USER_ERROR, "A component already exists with the name '" . $component->GetName() . "'");
-
-                return $this->ProcessHook("AddComponent_FRHOOK", [$this, false, $component]);
-            }
-
-            $this->components[$component->GetName()] = $component;
-            
-            if (!is_null($componentsParent = $component->GetParent()))
-                $componentsParent->RemoveComponent($component);
-
-            $component->parent = $this;            
-
-            $returnValue = true;
-
-            if ($component instanceof Extension)
-                $returnValue = $component->InitExtension();
-
-            return $this->ProcessHook("AddComponent_FRHOOK", [$this, $returnValue, $component]);
-        }
-
-        protected function RemoveComponent(Component $component) : bool {
-            usleep(1000);
-            $this->ProcessHook("RemoveComponent_FIHOOK", [$this, &$component]);            
-
-            if (!array_key_exists($component->GetName(), $this->components)) {            
-                $this->AddError(E_USER_ERROR, "The component does not exist");
-                
-                return $this->ProcessHook("RemoveComponent_FRHOOK", [$this, false, $component]);
-            }            
-
-            unset($this->components[$component->GetName()]);
-
-            $component->parent = null;
-
-            return $this->ProcessHook("RemoveComponent_FRHOOK", [$this, true, $component]);
-        }
+        
     }
 
 ?>

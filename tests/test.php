@@ -14,9 +14,9 @@
     $parent = new Component("parent",
         [
             new Component("child1"),
-            new ValueComponent("child2", "defaultValue"),
-            new DebuggingExtension("debuggingExtension")
-        ]
+            new ValueComponent("child2", "defaultValue")            
+        ],
+        new DebuggingExtension("debuggingExtension")
     );
 
     //$parent["child1"] = new Component("child1");

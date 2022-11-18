@@ -10,8 +10,8 @@
     use sbf\errorhandler\ErrorHandler;
 
     class Extension extends Component implements ExtensionInterface {
-        public function __construct(string $name, $components = null, ?ErrorHandler $errorHandler = null) {
-            parent::__construct($name, $components, $errorHandler);
+        public function __construct(string $name, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
+            parent::__construct($name, $components, $extensions, $errorHandler);
         }
 
         protected function InitExtension() : bool {
