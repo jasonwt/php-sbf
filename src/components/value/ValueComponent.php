@@ -12,8 +12,8 @@
     class ValueComponent extends Component {
         private $value;
 
-        public function __construct(string $name, $value = null, ?ErrorHandler $errorHandler = null) {
-            parent::__construct($name, $errorHandler);
+        public function __construct(string $name, $value = null, $components = null, ?ErrorHandler $errorHandler = null) {
+            parent::__construct($name, $components, $errorHandler);
 
             $this->value = $value;            
         }

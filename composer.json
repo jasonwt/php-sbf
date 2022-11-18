@@ -2,6 +2,7 @@
     "autoload": {
         "psr-4": {
             "sbf\\": "src/"
-        }
+        },
+        "files": ["src/debugging/Debugging.php"]
     }
 }

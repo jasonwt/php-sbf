@@ -13,8 +13,8 @@
     class ValidateValueExtension extends ValidateExtension {
         protected array $validationPatterns = [];
 
-        public function __construct(string $name, array $validationPatterns = [], ?ErrorHandler $errorHandler = null) {
-            parent::__construct($name, $errorHandler);
+        public function __construct(string $name, array $validationPatterns = [], $components = null, ?ErrorHandler $errorHandler = null) {
+            parent::__construct($name, $components, $errorHandler);
 
             $this->validationPatterns = $validationPatterns;
         }

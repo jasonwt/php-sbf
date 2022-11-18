@@ -11,8 +11,8 @@
     use sbf\extensions\Extension;
 
     class DebuggingExtension extends Extension {        
-        public function __construct(string $name, ?ErrorHandler $errorHandler = null) {
-            parent::__construct($name, $errorHandler);
+        public function __construct(string $name, $components = null, ?ErrorHandler $errorHandler = null) {
+            parent::__construct($name, $components, $errorHandler);
         }
 
         protected function InitExtension() : bool {

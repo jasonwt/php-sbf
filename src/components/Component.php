@@ -6,21 +6,11 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    //require_once(__DIR__ . "/ComponentInterface.php");
-    //require_once(__DIR__ . "/../errorhandler/ErrorHandlerInterface.php");
-    //require_once(__DIR__ . "/../errorhandler/ErrorHandler.php");
-    //require_once(__DIR__ . "/../debugging/Debugging.php");
-    //require_once(__DIR__ . "/../extensions/Extension.php");
-
-    //use function sbf\debugging\dtprint;
-
-    //use sbf\errorhandler\ErrorHandlerInterface;
-    //use sbf\errorhandler\ErrorHandler;
-    //use sbf\extensions\Extension;
-
     use sbf\errorhandler\ErrorHandler;
     use sbf\components\ComponentInterface;
     use sbf\extensions\Extension;
+
+    use function sbf\debugging\dtprint;
 
     class Component implements ComponentInterface {
         const ALLOW_SET              = 1;
@@ -37,11 +27,27 @@
 
         private ErrorHandler $errorHandler;
 
-        public function __construct(string $name, ?ErrorHandler $errorHandler = null) {
+        public function __construct(string $name, $components = null, ?ErrorHandler $errorHandler = null) {
             $this->errorHandler = (is_null($errorHandler) ? new ErrorHandler() : $errorHandler);
 
             if (($this->name = trim($name)) == "")                 
-                $this->errorHandler->AddError(E_USER_ERROR, "name is required and can not be all whitespaces.");
+                $this->AddError(E_USER_ERROR, "name is required and can not be all whitespaces.");
+
+            if (!is_null($components)) {
+                if (!is_array($components))
+                    $components = [$components];
+
+                foreach ($components as $component) {
+                    if (!is_object($component)) {
+                        $this->AddError(E_USER_ERROR, "Invalid component type '" . gettype($component) . "'. Must be derived from Component.");
+                    } else if (!($component instanceof Component)) {
+                        $this->AddError(E_USER_ERROR, "Invalid component type '" . get_class($component) . "'. Must be derived from Component.");
+                    } else {
+                        $this->AddComponent($component);
+                    }
+                }
+            }
+            
         }
 
         public function __call(string $methodName, array $arguments) {
@@ -74,12 +80,18 @@
         protected function ClearError(int $errorIndex) : bool {
             $this->ProcessHook("ClearError_FIHOOK", [$this, &$errorIndex]);
 
-            return $this->ProcessHook("ClearError_FRHOOK", [$this, $this->errorHandler->ClearError($errorIndex), $errorIndex]);
+            return $this->ProcessHook("ClearError_FRHOOK", [$this, $this->ClearError($errorIndex), $errorIndex]);
         }
         protected function ClearErrors() {
             $this->ProcessHook("ClearErrors_FIHOOK", [$this]);
 
             $this->ProcessHook("ClearErrors_FRHOOK", [$this, $this->errorHandler->ClearErrors()]);
+        }
+
+        protected function AddError(int $errorCode, string $errorMessage) : bool {
+            $this->ProcessHook("AddError_FIHOOK", [$this, &$errorCode, &$errorMessage]);
+
+            return $this->ProcessHook("AddError_FRHOOK", [$this, $this->errorHandler->AddError($errorCode, $errorMessage), $errorCode, $errorMessage]);
         }
 
         public function GetName() : string {
@@ -93,7 +105,7 @@
 
             if (!is_null($this->parent)) {
                 if (in_array($newName, $this->parent->GetComponentNames())) {
-                    $this->errorHandler->AddError(E_USER_ERROR, "A component already exists with the name '$newName'");
+                    $this->AddError(E_USER_ERROR, "A component already exists with the name '$newName'");
                     
                     return $this->ProcessHook("Rename_FRHOOK", [$this, false, $newName]);
                 }
@@ -101,7 +113,7 @@
                 $tmpParent = $this->parent;
 
                 if (!$this->SetParent(null)) {
-                    $this->errorHandler->AddError(E_USER_ERROR, "this->SetParent(null) failed.");
+                    $this->AddError(E_USER_ERROR, "this->SetParent(null) failed.");
                     
                     return $this->ProcessHook("Rename_FRHOOK", [$this, false, $newName]);
                 }
@@ -110,7 +122,7 @@
                 $this->name = $newName;
 
                 if (!$this->SetParent($tmpParent)) {
-                    $this->errorHandler->AddError(E_USER_ERROR, "this->SetParent() failed.");
+                    $this->AddError(E_USER_ERROR, "this->SetParent() failed.");
 
                     $this->name = $oldName;
                     $this->SetParent($tmpParent);
@@ -138,10 +150,8 @@
             return $this->ProcessHook("CanCall_FRHOOK", [$this, $reflection->isPublic(), $methodName]);
         }
 
-        public function RegisterExtension(Extension $extension) : bool {
+        protected function RegisterExtension(Extension $extension) : bool {
             $this->ProcessHook("RegisterExtension_FIHOOK", [$this, &$extension]);
-
-            $this->AddComponent($extension);
 
             return $this->ProcessHook("RegisterExtension_FRHOOK", [$this, $this->AddComponent($extension), $extension]);
         }
@@ -171,11 +181,11 @@
 
             if ($this->options && self::ALLOW_GET) {
                 if (is_null($component = $this->GetComponent($offset)))
-                    $this->errorHandler->AddError(E_USER_WARNING, "fffset '$offset' was not found.");
+                    $this->AddError(E_USER_WARNING, "fffset '$offset' was not found.");
                 else    
                     $returnValue = $component;
             } else {
-                $this->errorHandler->AddError(E_USER_ERROR, "offsetGet() is not permitted.");
+                $this->AddError(E_USER_ERROR, "offsetGet() is not permitted.");
             }
 
             return $returnValue;
@@ -190,9 +200,9 @@
          */
         public function offsetSet($offset, $value) {
             if (!$value instanceof Component) {
-                $this->errorHandler->AddError(E_USER_ERROR, "value is not derived from Component.");
+                $this->AddError(E_USER_ERROR, "value is not derived from Component.");
             } else if ($value->GetName() != $offset) {
-                $this->errorHandler->AddError(E_USER_ERROR, "offset and value->GetName() are not the same");
+                $this->AddError(E_USER_ERROR, "offset and value->GetName() are not the same");
             } else {
                 $error = [];
 
@@ -212,9 +222,9 @@
 
                 if (count($error) == 0) {
                     if (!$this->AddComponent($value))                                            
-                        $this->errorHandler->AddError(E_USER_ERROR, "offsetSet($offset, value) failed.");
+                        $this->AddError(E_USER_ERROR, "offsetSet($offset, value) failed.");
                 } else {
-                    $this->errorHandler->AddError($error["errorCode"], $error["errorMessage"]);                    
+                    $this->AddError($error["errorCode"], $error["errorMessage"]);                    
                 }
             }
         }
@@ -229,10 +239,10 @@
                 if (!is_null($component = $this->GetComponent($offset))) {
                     $this->RemoveComponent($component);
                 } else {
-                    $this->errorHandler->AddError(E_USER_WARNING, "Offset '$offset' not found.");
+                    $this->AddError(E_USER_WARNING, "Offset '$offset' not found.");
                 }
             } else {
-                $this->errorHandler->AddError(E_USER_ERROR, "offsetUnset($offset) is not permitted.");
+                $this->AddError(E_USER_ERROR, "offsetUnset($offset) is not permitted.");
             }
         }
 
@@ -286,7 +296,19 @@
             if ($this->iteratorIndex >= count($this->components))
                 return false;
 
-            return true;            
+            $componentNames = $this->GetComponentNames();
+        
+            while ($this->iteratorIndex < count($this->components)) {
+                $component = $this->components[$componentNames[$this->iteratorIndex]];
+
+                if ($component instanceof Component && !($component instanceof Extension))
+                    return true;
+
+                $this->iteratorIndex ++;
+            }
+
+
+            return false;
         }
         
         /**
@@ -295,8 +317,13 @@
          * @return int The custom count as an `int`.
          */
         public function count() {
-            return count($this->components);
-            //return $this->GetNumberOfComponents("\\sbf\\components\\value\\ValueComponent");
+            return count(
+                array_filter(
+                    $this->GetComponents("\\sbf\\components\\Component"), 
+                    function ($v, $k) { return !($v instanceof Extension);}, 
+                    ARRAY_FILTER_USE_BOTH
+                )
+            );            
         }
 
         protected function GetNumberOfComponents(string $componentType = "") : int {
@@ -340,7 +367,7 @@
             $this->ProcessHook("GetComponent_FIHOOK", [$this, &$name]);
 
             if (!array_key_exists($name, $this->components)) {
-                $this->errorHandler->AddError(E_USER_ERROR, "No component exists with the name of '$name'");                
+                $this->AddError(E_USER_ERROR, "No component exists with the name of '$name'");                
 
                 return $this->ProcessHook("GetComponent_FRHOOK", [$this, null, $name]);
             }
@@ -380,7 +407,7 @@
                 return;
             }
 
-            $this->errorHandler->AddError(E_USER_ERROR, "Invalid hookName '$hookName'");
+            $this->AddError(E_USER_ERROR, "Invalid hookName '$hookName'");
             
             return;
         }
@@ -392,13 +419,13 @@
             $this->ProcessHook("AddComponent_FIHOOK", [$this, &$component]);
 
             if (in_array($component, $this->components, true)) {
-                $this->errorHandler->AddError(E_USER_ERROR, "The component already exists");
+                $this->AddError(E_USER_ERROR, "The component already exists");
                 
                 return $this->ProcessHook("AddComponent_FRHOOK", [$this, false, $component]);
             }
 
             if (array_key_exists($component->GetName(), $this->components)) {
-                $this->errorHandler->AddError(E_USER_ERROR, "A component already exists with the name '" . $component->GetName() . "'");
+                $this->AddError(E_USER_ERROR, "A component already exists with the name '" . $component->GetName() . "'");
 
                 return $this->ProcessHook("AddComponent_FRHOOK", [$this, false, $component]);
             }
@@ -423,7 +450,7 @@
             $this->ProcessHook("RemoveComponent_FIHOOK", [$this, &$component]);            
 
             if (!array_key_exists($component->GetName(), $this->components)) {            
-                $this->errorHandler->AddError(E_USER_ERROR, "The component does not exist");
+                $this->AddError(E_USER_ERROR, "The component does not exist");
                 
                 return $this->ProcessHook("RemoveComponent_FRHOOK", [$this, false, $component]);
             }            

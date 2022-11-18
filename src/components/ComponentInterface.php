@@ -6,7 +6,7 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use sbf\extensions\ExtensionInterface;
+    use sbf\extensions\Extension;
 
     interface ComponentInterface extends \ArrayAccess, \Iterator, \Countable{
         public function GetError(?int $errorIndex = null) : ?string;
@@ -15,7 +15,7 @@
         public function GetName() : string;
         public function GetParent() : ?ComponentInterface;
         public function CanCall(string $methodName) : bool;
-        public function RegisterExtension(ExtensionInterface $extension) : bool;
+        //public function RegisterExtension(Extension $extension) : bool;
     }
 
     
