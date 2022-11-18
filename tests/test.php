@@ -6,18 +6,21 @@
 
     require_once("vendor/autoload.php");
 
+    use sbf\components\value\arrays\ValueComponentArray;
     use sbf\extensions\validate\value\ValidateValueExtension;
     use sbf\extensions\debugging\DebuggingExtension;
     use sbf\components\value\ValueComponent;
     use sbf\components\Component;
     use function sbf\debugging\dtprint;
 
-    $parent = new Component("parent",
+    $parent = new ValueComponentArray("parent",
         [
-            new Component("child1"),
+            new ValueComponent("child1"),
             new ValueComponent("child2", "defaultValue", null, new ValidateValueExtension("validateValue"))
         ],
-        new DebuggingExtension("debuggingExtension")
+        [
+            new DebuggingExtension("debuggingExtension")
+        ]
     );
 
     //$parent["child1"] = new Component("child1");

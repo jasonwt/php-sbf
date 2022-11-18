@@ -29,7 +29,7 @@
         protected array $components = [];
         protected array $extensions = [];
 
-        private ErrorHandler $errorHandler;
+        protected ErrorHandler $errorHandler;
 
         public function __construct(string $name, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             $this->errorHandler = (is_null($errorHandler) ? new ErrorHandler() : $errorHandler);
@@ -305,18 +305,7 @@
             if ($this->iteratorIndex >= count($this->components))
                 return false;
 
-            $componentNames = $this->GetComponentNames();
-        
-            while ($this->iteratorIndex < count($this->components)) {
-                $component = $this->components[$componentNames[$this->iteratorIndex]];
-
-                if ($component instanceof Component && !($component instanceof Extension))
-                    return true;
-
-                $this->iteratorIndex ++;
-            }
-
-            return false;
+            return true;
         }
         
         /**
