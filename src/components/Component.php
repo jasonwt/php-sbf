@@ -66,7 +66,6 @@
                     }
                 }
             }
-            
         }
 
         public function __call(string $methodName, array $arguments) {
@@ -317,7 +316,6 @@
                 $this->iteratorIndex ++;
             }
 
-
             return false;
         }
         
@@ -336,7 +334,9 @@
             );            
         }
 
-
+        /* 
+        EXTENSIONS METHODS 
+        */
 
         protected function GetExtensionsCount(string $extensionType = "") : int {
             $this->ProcessHook("GetExtensionsCount_FIHOOK", [$this, &$extensionType]);
@@ -397,9 +397,9 @@
             return $this->ProcessHook("RemoveExtension_FRHOOK", [$this, $returnValue, $extension]);
         }
 
-
-
-
+        /* 
+        COMPONENT METHODS 
+        */
 
         protected function GetComponentsCount(string $componentType = "") : int {
             $this->ProcessHook("GetComponentsCount_FIHOOK", [$this, &$componentType]);
@@ -463,23 +463,20 @@
             return $this->ProcessHook("RemoveComponent_FRHOOK", [$this, $returnValue, $component]);
         }
 
-        protected function ProcessHook($hookName, array $parameters = [])  {
-//            echo "ProcessHook($hookName)\n";
+        /* 
+        PROCESS HOOKS
+        */
 
+        protected function ProcessHook($hookName, array $parameters = [])  {
             if (substr($hookName, -7) == "_FRHOOK") {
                 $tmpParameters = $parameters;                
 
                 if (method_exists($this, $hookName))
                     $tmpParameters[1] = call_user_func_array([$this, $hookName], $tmpParameters);
 
-                foreach ($this->components as $component) {
+                foreach (array_merge($this->components, $this->extensions) as $component) {
                     if (method_exists($component, $hookName))
                         $tmpParameters[1] = call_user_func_array([$component, $hookName], $tmpParameters);
-                }
-
-                foreach ($this->extensions as $extension) {
-                    if (method_exists($extension, $hookName))
-                        $tmpParameters[1] = call_user_func_array([$extension, $hookName], $tmpParameters);
                 }
                 
                 return $parameters[1];
@@ -488,11 +485,8 @@
                 if (method_exists($this, $hookName))
                     $this->ProcessHook($hookName, $parameters);                    
 
-                foreach ($this->components as $component)
-                    $component->ProcessHook($hookName, $parameters);
-
-                foreach ($this->extensions as $extension)
-                    $extension->ProcessHook($hookName, $parameters);
+                foreach (array_merge($this->components, $this->extensions) as $component)
+                    $component->ProcessHook($hookName, $parameters);                
 
                 return;
             }
@@ -501,10 +495,6 @@
             
             return;
         }
-
-
-
-        
     }
 
 ?>

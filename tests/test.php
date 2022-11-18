@@ -6,6 +6,7 @@
 
     require_once("vendor/autoload.php");
 
+    use sbf\extensions\validate\value\ValidateValueExtension;
     use sbf\extensions\debugging\DebuggingExtension;
     use sbf\components\value\ValueComponent;
     use sbf\components\Component;
@@ -14,7 +15,7 @@
     $parent = new Component("parent",
         [
             new Component("child1"),
-            new ValueComponent("child2", "defaultValue")            
+            new ValueComponent("child2", "defaultValue", null, new ValidateValueExtension("validateValue"))
         ],
         new DebuggingExtension("debuggingExtension")
     );

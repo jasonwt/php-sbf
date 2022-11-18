@@ -21,7 +21,6 @@
         public function GetValue() {
             $this->ProcessHook("GetValue_FIHOOK", [$this]);
 
-            
             return ($this->ProcessHook("GetValue_FRHOOK", [$this, $this->value]));
         }
 

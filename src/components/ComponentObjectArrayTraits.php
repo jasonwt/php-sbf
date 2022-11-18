@@ -13,26 +13,8 @@
             return count($arr);
         }
 
-        
-
         private function GetObjectArrayElementKeys(array &$arr, string $objectType = "") : array {   
-            return array_keys($this->GetObjectArrayElements($arr, $objectType));
-/*            
-            $returnValue = array_keys($arr);
-
-            if (($objectType = trim($objectType)) != "" ) {
-                $returnValue = array_values(array_filter($returnValue, function ($v, $k) use ($objectType, $arr) {
-                    return is_a($arr[$v], $objectType);
-                }, ARRAY_FILTER_USE_BOTH));
-
-//                foreach ($arr as $elementKey => $element) {
-//                    if ($objectType == "" || is_a($element, $objectType))
-//                        $returnValue[] = $elementKey;
-//                }
-            }
-
-            return $returnValue;
-*/            
+            return array_keys($this->GetObjectArrayElements($arr, $objectType));   
         }
 
         private function GetObjectArrayElements(array &$arr, string $objectType = "") : array {
@@ -77,9 +59,6 @@
             }
 
             return false;
-
-//            if ($element instanceof Extension)
-//                $returnValue = $element->InitExtension();
         }
 
         private function ObjectArrayRemoveElement(array &$arr, Component $element) : bool {
@@ -96,7 +75,4 @@
             return true;
         }
     }
-    
-
-    
 ?>

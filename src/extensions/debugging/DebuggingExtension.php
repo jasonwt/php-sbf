@@ -32,18 +32,31 @@
                 $returnValue .= str_repeat("\t", $indentLevel) . "Value         : " . $component->GetValue() . "\n";
 
             if ($component->GetErrorCount() > 0) {
-                $returnValue .= str_repeat("\t", $indentLevel) . "Errors:\n\n";
+                $returnValue .= str_repeat("\t", $indentLevel) . "ERRORS:\n\n";
 
                 while ($error = $component->GetError()) {
                     $returnValue .= str_repeat("\t", $indentLevel+1) . str_replace("\n", "\n" . str_repeat("\t", $indentLevel+1), $error) . "\n\n";
                 }
             }
 
-            foreach ($component->GetComponents() as $com) {
-                $returnValue .= "\n";
-                $returnValue .= $this->GetStructure($com, $indentLevel+1);
-                
+            if ($component->GetExtensionsCount() > 0) {
+                $returnValue .= "\n" . str_repeat("\t", $indentLevel) . "EXTENSIONS:\n";
+
+                foreach ($component->GetExtensions() as $extension) {
+                    $returnValue .= "\n";
+                    $returnValue .= $this->GetStructure($extension, $indentLevel+1);        
+                }
             }
+
+            if ($component->GetComponentsCount() > 0) {
+                $returnValue .= "\n" . str_repeat("\t", $indentLevel) . "COMPONENTS:\n";
+
+                foreach ($component->GetComponents() as $component) {
+                    $returnValue .= "\n";
+                    $returnValue .= $this->GetStructure($component, $indentLevel+1);        
+                }
+            }
+            $returnValue .= "\n";
 
             return $returnValue;
         }
