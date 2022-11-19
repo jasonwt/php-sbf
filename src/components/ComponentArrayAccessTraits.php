@@ -28,6 +28,8 @@
          * @return mixed Can return all value types.
          */
         public function offsetGet($offset) {
+            $this->ProcessHook("offsetGet_FIHOOK", [$this, &$offset]);
+
             $returnValue = null;
 
             if ($this->options && self::ALLOW_GET) {
@@ -39,8 +41,7 @@
                 $this->AddError(E_USER_ERROR, "offsetGet() is not permitted.");
             }
 
-            return $returnValue;
-            //return $this->ProcessHook("offsetGet_FRHOOK", [$this, $returnValue, $offset]);            
+            return $this->ProcessHook("offsetGet_FRHOOK", [$this, $returnValue, $offset]);            
         }
         
         /**
@@ -50,32 +51,43 @@
          * @param mixed $value The value to set.
          */
         public function offsetSet($offset, $value) {
+            $this->ProcessHook("offsetSet_FIHOOK", [$this, &$offset, &$value]);
+
             if (!$value instanceof Component) {
                 $this->AddError(E_USER_ERROR, "value is not derived from Component.");
             } else if ($value->GetName() != $offset) {
                 $this->AddError(E_USER_ERROR, "offset and value->GetName() are not the same");
             } else {
-                $error = [];
-
-                if (array_key_exists($offset, $this->components)) {
-                    if ($this->options & self::ALLOW_SET_ON_FOUND || $this->options & self::ALLOW_SET) {                        
-                        if (!is_null($component = $this->GetComponent($offset))) {
-                            if ($this->RemoveComponent($component) == false) {
-                                $this->AddError(E_USER_ERROR, "this->RemoveComponent() failed.");
-                                return;
+                if (array_key_exists($offset, $this->components)) {                    
+                    if ($this->options & self::ALLOW_SET_ON_FOUND || $this->options & self::ALLOW_SET) {
+                        if ($value != $this->components[$offset]) {
+                            if (!is_null($component = $this->GetComponent($offset))) {
+                                if ($this->RemoveComponent($component) == false) {
+                                    $this->AddError(E_USER_ERROR, "this->RemoveComponent() failed.");
+                                } else {
+                                    if (!$this->AddComponent($value)) {
+                                        $this->AddError(E_USER_ERROR, "this->AddComponent() failed.");
+                                    }
+                                }
+                            } else {
+                                $this->AddError(E_USER_ERROR, "this->AddComponent($offset) failed.");
                             }
-                        }                      
+                        } 
                     } else {
                         $this->AddError(E_USER_ERROR, "offsetSet() is not permitted for EXISTING components.");
-                        return;
                     }
-                } else {
+                } else {                    
                     if (!($this->options & self::ALLOW_SET_ON_NOT_FOUND || $this->options & self::ALLOW_SET)) {
                         $this->AddError(E_USER_ERROR, "offsetSet() is not permitted for NEW components.");
-                        return;
-                    }
+                    } else {
+                        if (!$this->AddComponent($value)) {
+                            $this->AddError(E_USER_ERROR, "this->AddComponent() failed.");
+                        }
+                    }                 
                 }                
             }
+
+            $this->ProcessHook("offsetSet_FRHOOK", [$this, null, $offset, $value]);
         }
         
         /**
@@ -84,6 +96,8 @@
          * @param mixed $offset The offset to unset.
          */
         public function offsetUnset($offset) {
+            $this->ProcessHook("offsetUnset_FIHOOK", [$this, &$offset]);
+
             if ($this->options & self::ALLOW_UNSET) {
                 if (!is_null($component = $this->GetComponent($offset))) {
                     $this->RemoveComponent($component);
@@ -93,6 +107,8 @@
             } else {
                 $this->AddError(E_USER_ERROR, "offsetUnset($offset) is not permitted.");
             }
+
+            $this->ProcessHook("offsetUnset_FRHOOK", [$this, null, $offset]);
         }
     }
 

@@ -70,7 +70,8 @@
         public function count() {
             return count(
                 array_filter(
-                    $this->GetComponents("\\sbf\\components\\Component"), 
+                    //$this->GetComponents("\\sbf\\components\\Component"), 
+                    $this->components,
                     function ($v, $k) { return !($v instanceof Extension);}, 
                     ARRAY_FILTER_USE_BOTH
                 )

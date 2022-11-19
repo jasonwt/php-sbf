@@ -50,7 +50,9 @@
                     if (!is_null($componentsParent = $element->GetParent()))
                         $componentsParent->RemoveComponent($element);
 
-                    $element->parent = $this;            
+                    $element->parent = $this;
+
+                    return true;
                 } else {
                     $this->AddError(E_USER_ERROR, "A element already exists with the name '" . $element->GetName() . "'");
                 }

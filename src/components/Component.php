@@ -29,7 +29,7 @@
         const ALLOW_GET              = 16;
 
         protected $iteratorIndex = 0;
-        protected $options = 20;
+        protected $options = 31;
         protected $name = "";
         protected ?Component $parent = null;
         protected array $components = [];
@@ -84,6 +84,7 @@
         }
 
         public function CanCall(string $methodName) : bool {
+            
             $this->ProcessHook("CanCall_FIHOOK", [$this, &$methodName]);
 
             $canCall = false;
@@ -284,17 +285,17 @@
 
                 if (method_exists($this, $hookName))
                     $tmpParameters[1] = call_user_func_array([$this, $hookName], $tmpParameters);
-
+                    
                 foreach (array_merge($this->components, $this->extensions) as $component) {
                     if (method_exists($component, $hookName))
                         $tmpParameters[1] = call_user_func_array([$component, $hookName], $tmpParameters);
                 }
                 
-                return $parameters[1];
-
-            } else if (substr($hookName, -7) == "_FIHOOK") {
+                return $tmpParameters[1];
+            } else if (substr($hookName, -7) == "_FIHOOK") {                
                 if (method_exists($this, $hookName))
-                    $this->ProcessHook($hookName, $parameters);                    
+                    call_user_func_array([$this, $hookName], $parameters);
+                    //$this->ProcessHook($hookName, $parameters);                    
 
                 foreach (array_merge($this->components, $this->extensions) as $component)
                     $component->ProcessHook($hookName, $parameters);                
