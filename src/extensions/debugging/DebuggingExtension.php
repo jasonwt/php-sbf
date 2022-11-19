@@ -10,16 +10,17 @@
     use sbf\errorhandler\ErrorHandler;
     use sbf\extensions\Extension;
 
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
+
     class DebuggingExtension extends Extension {        
         public function __construct(string $name, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             parent::__construct($name, $components, $extensions, $errorHandler);
         }
 
-        protected function InitExtension() : bool {
-            return true;
-        }
-
         protected function GetStructure(Component $component, int $indentLevel) : string {
+            ComponentStartOfFunctionEvent::SEND([&$component, &$indentLevel]);
+
             $returnValue = "";
 
             $returnValue .= str_repeat("\t", $indentLevel) . "CLASS TYPE : " . get_class($component) . "\n";
@@ -58,14 +59,20 @@
             }
             $returnValue .= "\n";
 
-            return $returnValue;
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$component, $indentLevel]);
         }
 
         public function GetComponentStructure() : string {
-            if ($this->GetParent() == null)
+            ComponentStartOfFunctionEvent::SEND();
+
+            if ($this->parent == null)
                 return "";
 
-            return $this->GetStructure($this->GetParent(), 0);
+            
+
+            $returnValue = $this->GetStructure($this->GetParent(), 0);
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue);
         }        
     }
 

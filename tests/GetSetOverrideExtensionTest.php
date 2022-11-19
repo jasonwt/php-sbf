@@ -29,18 +29,20 @@
         ]
     );
 
-    dtprint($obj->GetComponentStructure());
+    
 
     //$obj["name"] = new ValueComponent("name", "jason");
 
     $obj["name"] = "Jason";
 
+    //dtprint($obj->GetComponentStructure());
+
 //    dtprint($obj);
 
-//    dtprint($obj->GetComponentStructure());
+    dtprint($obj->GetComponentStructure());
 
     foreach ($obj as $k => $v) {
-        dtprint($k . ": ", gettype($obj[$k]) . ":" . print_r($obj[$k], true), "\n");
+       dtprint($k . ": ", gettype($obj[$k]) . ":" . print_r($obj[$k], true), "\n");
     }
     
 

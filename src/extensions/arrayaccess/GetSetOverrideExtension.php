@@ -2,6 +2,7 @@
     declare(strict_types=1);
 
     namespace sbf\extensions\arrayaccess;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
     
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
@@ -9,6 +10,10 @@
     use sbf\components\Component;
     use sbf\extensions\Extension;
     use sbf\errorhandler\ErrorHandler;
+
+    use sbf\events\components\ComponentEvent;
+
+    use function sbf\debugging\dtprint;
 
     class GetSetOverrideExtension extends Extension {
         protected $componentType = "";
@@ -23,42 +28,37 @@
             $this->componentType = trim($componentType);
         }
 
-        public function offsetGet_FRHOOK(Component $caller, $returnValue, $offset) {
-            if ($caller != $this->parent)
-                return $returnValue;
+        protected function HandleEvent(ComponentEvent $event) {
+            if ($event->caller != $this->parent)
+                return $event->returnValue;
 
-            if (!$this->getMethod || !$this->componentType)
-                return $returnValue;
+            if ($event->name == "offsetSet") {
+                if (!$this->setMethod || !$this->componentType)
+                    return $event->returnValue;
 
-            //if (!method_exists($this->parent, $this->getMethod)) {
-            //    $this->AddError(E_USER_ERROR, "getMethod '" . $this->getMethod . "' does not exist");
-            //    return $returnValue;
-            //}
-            
-            return call_user_func([$returnValue, $this->getMethod]);            
-        }
+                $newComponent = null;
+                $offset = &$event->arguments[0];
+                $value = &$event->arguments[1];
 
-        public function offsetSet_FIHOOK(Component $caller, &$offset, &$value) {
-            if ($caller != $this->parent)
-                return;
+                if (array_key_exists($offset, $this->components))
+                    $newComponent = $event->caller->GetComponent($offset);                    
+                else
+                    $newComponent = new $this->componentType($offset);
+    
+                call_user_func([$newComponent, $this->setMethod], $value);
 
-            if (!$this->setMethod || !$this->componentType)
-                return;
+                $value = $newComponent;
 
-            //if (!method_exists($caller->parent, $this->setMethod)) {
-            //    $this->AddError(E_USER_ERROR, "setMethod '" . $this->setMethod . "' does not exist");
-            //    return;
-            //}
+            } else if ($event->name == "offsetGet") {
+                if ($event instanceof ComponentEndOfFunctionEvent) {
+                    if (!$this->getMethod || !$this->componentType)
+                        return $event->returnValue;
 
-            $newComponent = null;
+                    $event->returnValue = call_user_func([$event->returnValue, $this->getMethod]);
+                }
+            }
 
-            if (array_key_exists($offset, $this->components))
-                $newComponent = $this->parent->GetComponent($offset);
-            else
-                $newComponent = new $this->componentType($offset);
-
-            call_user_func([$newComponent, $this->setMethod], $value);
-            $value = $newComponent;
+            return $event->returnValue;
         }
     }
 ?>

@@ -6,7 +6,7 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    interface ComponentInterface extends \ArrayAccess, \Iterator, \Countable{
+    interface ComponentInterface extends \ArrayAccess, \Iterator, \Countable {
         public function GetError(?int $errorIndex = null) : ?string;
         public function GetErrors() : array;
         public function GetErrorCount() : int;

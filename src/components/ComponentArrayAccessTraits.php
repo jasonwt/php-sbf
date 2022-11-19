@@ -6,6 +6,9 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
+    use sbf\events\components\ComponentEndOfFunctionEvent;
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+
     trait ComponentArrayAccessTraits {
         /**
          * Whether an offset exists
@@ -15,9 +18,13 @@
          * @return bool Returns `true` on success or `false` on failure.
          */
         public function offsetExists($offset) {
-            $this->ProcessHook("offsetExists_FIHOOK", [$this, &$offset]);
+            ComponentStartOfFunctionEvent::SEND([&$offset]);
+            //$this->ProcessHook("offsetExists_FIHOOK", [$this, &$offset]);
 
-            return $this->ProcessHook("offsetExists_FRHOOK", [$this, in_array($offset, $this->GetComponentNames()), $offset]);
+            $returnValue = in_array($offset, $this->GetComponentNames());
+            
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$offset]);
+            //return $this->ProcessHook("offsetExists_FRHOOK", [$this, in_array($offset, $this->GetComponentNames()), $offset]);
         }
         
         /**
@@ -28,7 +35,10 @@
          * @return mixed Can return all value types.
          */
         public function offsetGet($offset) {
-            $this->ProcessHook("offsetGet_FIHOOK", [$this, &$offset]);
+            ComponentStartOfFunctionEvent::SEND([&$offset]);
+            //$this->SendEvent(ComponentStartOfFunctionEvent::AUTO());
+            //$this->SendEvent(new ComponentStartOfFunctionEvent("offsetGet", $this, [&$offset]));
+            //$this->ProcessHook("offsetGet_FIHOOK", [$this, &$offset]);
 
             $returnValue = null;
 
@@ -41,7 +51,11 @@
                 $this->AddError(E_USER_ERROR, "offsetGet() is not permitted.");
             }
 
-            return $this->ProcessHook("offsetGet_FRHOOK", [$this, $returnValue, $offset]);            
+            //return $this->ProcessHook("offsetGet_FRHOOK", [$this, $returnValue, $offset]);
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$offset]);
+            //return $this->SendEvent(ComponentEndOfFunctionEvent::s($returnValue));
+            //return $this->SendEvent(new ComponentEndOfFunctionEvent("offsetGet", $this, $returnValue, [$offset]));    
         }
         
         /**
@@ -51,7 +65,10 @@
          * @param mixed $value The value to set.
          */
         public function offsetSet($offset, $value) {
-            $this->ProcessHook("offsetSet_FIHOOK", [$this, &$offset, &$value]);
+            //ComponentStartOfFunctionEvent::SEND([&$offset, &$value]);
+            ComponentStartOfFunctionEvent::SEND([&$offset, &$value]);
+         
+            //$this->ProcessHook("offsetSet_FIHOOK", [$this, &$offset, &$value]);
 
             if (!$value instanceof Component) {
                 $this->AddError(E_USER_ERROR, "value is not derived from Component.");
@@ -87,7 +104,8 @@
                 }                
             }
 
-            $this->ProcessHook("offsetSet_FRHOOK", [$this, null, $offset, $value]);
+            //$this->ProcessHook("offsetSet_FRHOOK", [$this, null, $offset, $value]);
+            return ComponentEndOfFunctionEvent::SEND(null, [$offset, $value]);
         }
         
         /**
@@ -96,7 +114,8 @@
          * @param mixed $offset The offset to unset.
          */
         public function offsetUnset($offset) {
-            $this->ProcessHook("offsetUnset_FIHOOK", [$this, &$offset]);
+            ComponentStartOfFunctionEvent::SEND([&$offset]);
+            //$this->ProcessHook("offsetUnset_FIHOOK", [$this, &$offset]);
 
             if ($this->options & self::ALLOW_UNSET) {
                 if (!is_null($component = $this->GetComponent($offset))) {
@@ -108,7 +127,8 @@
                 $this->AddError(E_USER_ERROR, "offsetUnset($offset) is not permitted.");
             }
 
-            $this->ProcessHook("offsetUnset_FRHOOK", [$this, null, $offset]);
+            return ComponentEndOfFunctionEvent::SEND(null, [$offset]);
+            //$this->ProcessHook("offsetUnset_FRHOOK", [$this, null, $offset]);
         }
     }
 

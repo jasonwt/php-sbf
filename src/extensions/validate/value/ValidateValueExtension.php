@@ -10,6 +10,9 @@
     use sbf\errorhandler\ErrorHandler;
     use sbf\extensions\validate\ValidateExtension;
 
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
+
     class ValidateValueExtension extends ValidateExtension {
         protected array $validationPatterns = [];
 
@@ -20,7 +23,7 @@
         }
 
         protected function InitExtension() : bool {
-            $this->ProcessHook("InitExtension_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
             
             $returnValue = false;
 
@@ -34,11 +37,11 @@
                 $this->AddError(E_USER_ERROR, "this->GetParent() must not be null.");
             }
                 
-            return $this->ProcessHook("InitExtension_FRHOOK", [$this, $returnValue]);
+            return ComponentEndOfFunctionEvent::SEND($returnValue);
         }
         
         public function Validate() {
-            $this->ProcessHook("Validate_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
 
             $validationErrors = [];
 
@@ -47,7 +50,9 @@
                     $validationErrors[] = $name;
             }
 
-            return $this->ProcessHook("Validate_FRHOOK", [$this, (count($validationErrors) == 0 ? true : $validationErrors)]);
+            $returnValue = (count($validationErrors) == 0 ? true : $validationErrors);
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue);
         }
     }
 

@@ -9,6 +9,9 @@
     use sbf\components\Component;
     use sbf\errorhandler\ErrorHandler;
 
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
+
     class ValueComponent extends Component {
         private $value;
 
@@ -19,17 +22,17 @@
         }
 
         public function GetValue() {
-            $this->ProcessHook("GetValue_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
 
-            return ($this->ProcessHook("GetValue_FRHOOK", [$this, $this->value]));
+            return ComponentEndOfFunctionEvent::SEND($this->value);
         }
 
         public function SetValue($value) {
-            $this->ProcessHook("SetValue_FIHOOK", [$this, &$value]);
+            ComponentStartOfFunctionEvent::SEND([&$value]);
 
             $this->value = $value;
 
-            return ($this->ProcessHook("SetValue_FRHOOK", [$this, null, $value]));
+            return ComponentEndOfFunctionEvent::SEND(null, [$value]);
         }
     }
 

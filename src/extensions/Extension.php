@@ -9,28 +9,33 @@
     use sbf\components\Component;
     use sbf\errorhandler\ErrorHandler;
 
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
+
     class Extension extends Component implements ExtensionInterface {
         public function __construct(string $name, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             parent::__construct($name, $components, $extensions, $errorHandler);
         }
 
         protected function InitExtension() : bool {
-            $this->ProcessHook("InitExtension_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
 
-            return $this->ProcessHook("InitExtension_FRHOOK", [$this, true]);
+            return ComponentEndOfFunctionEvent::SEND(true);
         }
 
         protected function DisabledPublicCanCallMethods() : array {
-            $this->ProcessHook("DisabledPublicCanCallMethods_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
 
-            return $this->ProcessHook("DisabledPublicCanCallMethods_FRHOOK", [$this, []]);
+            return ComponentEndOfFunctionEvent::SEND([]);
         }
 
         public function CanCall(string $methodName) : bool {
-            if (in_array($methodName, $this->DisabledPublicCanCallMethods()))
-                return false;            
+            ComponentStartOfFunctionEvent::SEND([&$methodName]);
 
-            return parent::CanCall($methodName);            
+            if (in_array($methodName, $this->DisabledPublicCanCallMethods()))
+                return ComponentEndOfFunctionEvent::SEND(false, [$methodName]);
+
+            return ComponentEndOfFunctionEvent::SEND(parent::CanCall($methodName), [$methodName]);            
         }
     }
 ?>

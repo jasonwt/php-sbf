@@ -6,39 +6,52 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use sbf\extensions\Extension;
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
 
     trait ComponentErrorTraits {
         public function GetError(?int $errorIndex = null) : ?string {
-            $this->ProcessHook("GetError_FIHOOK", [$this, &$errorIndex]);
+            ComponentStartOfFunctionEvent::SEND([&$errorIndex]);
 
-            return $this->ProcessHook("GetError_FRHOOK", [$this, $this->errorHandler->GetError($errorIndex), $errorIndex]);
+            $returnValue = $this->errorHandler->GetError($errorIndex);
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$errorIndex]);
         }
         public function GetErrors() : array {
-            $this->ProcessHook("GetErrors_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
 
-            return $this->ProcessHook("GetErrors_FRHOOK", [$this, $this->errorHandler->GetErrors()]);
+            $returnValue = $this->errorHandler->GetErrors();
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue);
         }
         public function GetErrorCount() : int {
-            $this->ProcessHook("GetErrorCount_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
 
-            return $this->ProcessHook("GetErrorCount_FRHOOK", [$this, $this->errorHandler->GetErrorCount()]);
+            $returnValue = $this->errorHandler->GetErrorCount();
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue);
         }
         protected function ClearError(int $errorIndex) : bool {
-            $this->ProcessHook("ClearError_FIHOOK", [$this, &$errorIndex]);
+            ComponentStartOfFunctionEvent::SEND([&$errorIndex]);
 
-            return $this->ProcessHook("ClearError_FRHOOK", [$this, $this->errorHandler->ClearError($errorIndex), $errorIndex]);
+            $returnValue = $this->errorHandler->ClearError($errorIndex);
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$errorIndex]);
         }
         protected function ClearErrors() {
-            $this->ProcessHook("ClearErrors_FIHOOK", [$this]);
+            ComponentStartOfFunctionEvent::SEND();
 
-            $this->ProcessHook("ClearErrors_FRHOOK", [$this, $this->errorHandler->ClearErrors()]);
+            $returnValue = $this->errorHandler->ClearErrors();
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue);
         }
 
         protected function AddError(int $errorCode, string $errorMessage) : bool {
-            $this->ProcessHook("AddError_FIHOOK", [$this, &$errorCode, &$errorMessage]);
+            ComponentStartOfFunctionEvent::SEND([&$errorCode, &$errorMessage]);
 
-            return $this->ProcessHook("AddError_FRHOOK", [$this, $this->errorHandler->AddError($errorCode, $errorMessage), $errorCode, $errorMessage]);
+            $returnValue = $this->errorHandler->AddError($errorCode, $errorMessage);
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$errorCode, $errorMessage]);
         }
     }
 
