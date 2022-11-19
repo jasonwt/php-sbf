@@ -42,7 +42,7 @@
             return in_array($element, $arr, true);
         }
 
-        private function ObjectArrayAddElement(array &$arr, Component $element) : bool {
+        private function ObjectArrayAddElement(array &$arr, Component $element) : ?Component {
             if (!in_array($element, $arr, true)) {
                 if (!array_key_exists($element->GetName(), $arr)) {
                     $arr[$element->GetName()] = $element;
@@ -52,7 +52,7 @@
 
                     $element->parent = $this;
 
-                    return true;
+                    return $element;
                 } else {
                     $this->AddError(E_USER_ERROR, "A element already exists with the name '" . $element->GetName() . "'");
                 }
@@ -60,7 +60,7 @@
                 $this->AddError(E_USER_ERROR, "The element already exists");            
             }
 
-            return false;
+            return null;
         }
 
         private function ObjectArrayRemoveElement(array &$arr, Component $element) : bool {

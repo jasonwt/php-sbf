@@ -18,7 +18,8 @@
         public function __construct(string $name, $value = null, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             parent::__construct($name, $components, $extensions, $errorHandler);
 
-            $this->value = $value;            
+            if (!is_null($value))
+                $this->value = $value;            
         }
 
         public function GetValue() {

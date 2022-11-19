@@ -7,16 +7,13 @@
     require_once("vendor/autoload.php");    
 
     require_once(__DIR__ . "/database.login.php");
-
-    use sbf\components\Component;
-    use sbf\components\value\ValueComponent;
-
-    use sbf\extensions\arrayaccess\GetSetOverrideExtension;
-    use sbf\extensions\debugging\DebuggingExtension;    
-
+   
     use function sbf\debugging\dtprint;
 
+    use sbf\prefabs\html\HTMLCoreAttributes;
 
+    $obj = new HTMLCoreAttributes("htmlAttributes", new HTMLCoreAttributes("sub"));
+/*    
     $obj = new Component(
         "parent",
         [
@@ -28,23 +25,39 @@
             new DebuggingExtension("debuggingExtension")
         ]
     );
-
+*/
     
 
-    //$obj["name"] = new ValueComponent("name", "jason");
+//    $obj["name"] = new ValueComponent("name", "jasddon");
 
-    $obj["name"] = "Jason";
+//    $obj["name"] = "Jasona";
 
     //dtprint($obj->GetComponentStructure());
 
 //    dtprint($obj);
 
-    dtprint($obj->GetComponentStructure());
+
+
+//$obj["sub"]["name"] = "Jason";
+
+
+
+print_r($obj->GetErrors());
+
+echo $obj["sub"]["name"];
+
+print_r($obj["sub"]);
+
+
+    //dtprint($obj->GetComponentStructure());
+
+    die();
 
     foreach ($obj as $k => $v) {
        dtprint($k . ": ", gettype($obj[$k]) . ":" . print_r($obj[$k], true), "\n");
     }
     
+    echo "name: " . $obj["name"]["name"];
 
 
 ?>

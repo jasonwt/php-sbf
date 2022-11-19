@@ -29,8 +29,16 @@
             if (!is_null($component->GetParent()))
                 $returnValue .= str_repeat("\t", $indentLevel) . "PARENT     : " . $component->GetParent()->GetName() . "\n";
 
-            if (method_exists($component, "GetValue"))
-                $returnValue .= str_repeat("\t", $indentLevel) . "VALUE      : " . $component->GetValue() . "\n";
+            if (method_exists($component, "GetValue")) {
+                $value = $component->GetValue();
+
+    //            if (is_object($value)) {
+
+//                } else if (is_string($value)) {
+                    $returnValue .= str_repeat("\t", $indentLevel) . "VALUE      : " . print_r($value, true) . "\n";
+  //              }
+                
+            }
 
             if ($component->GetErrorCount() > 0) {
                 $returnValue .= str_repeat("\t", $indentLevel) . "ERRORS:\n\n";

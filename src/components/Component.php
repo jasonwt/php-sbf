@@ -256,7 +256,7 @@
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$component]);
         }
 
-        protected function AddComponent(Component $component) : bool {
+        protected function AddComponent(Component $component) : Component {
             if ($component instanceof Extension) {
                 $this->AddError(E_USER_ERROR, "Use AddExtension rather then AddComponent when adding extensions.");
                 return false;
