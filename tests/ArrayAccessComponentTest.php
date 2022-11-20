@@ -1,5 +1,4 @@
 <?php
-
     declare(strict_types=1);
 
     error_reporting(E_ALL);
@@ -8,6 +7,7 @@
     require_once("vendor/autoload.php");
 
     use sbf\components\Component;
+    use sbf\components\value\ValueComponent;
     use sbf\components\arrayaccess\ArrayAccessComponent;
     use sbf\extensions\debugging\DebuggingExtension;
 
@@ -16,11 +16,17 @@
 
 
     $parent = new ArrayAccessComponent("parent", null, null, null, null, new DebuggingExtension("debuggingExtension"));
-
-    $parent["test"] = new Component("test");
-
-    dprint($parent);
     dtprint($parent->Dump(false));
+
+    $parent["child1"] = new ValueComponent("child1", "child1");
+    //$parent["child2"] = new ValueComponent("child2", "child2");
+    //$parent["child2"] = new ValueComponent("child2", "child2Updated");
+    //$parent["child2"] = new Component("child2");
+    $parent["child2"] = "child2";
+
+
+    dtprint($parent->Dump(false));
+    
 
 
 ?>

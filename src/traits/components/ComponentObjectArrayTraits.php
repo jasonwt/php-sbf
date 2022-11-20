@@ -51,6 +51,11 @@
 
         private function ObjectArrayReplaceElement(array &$arr, Component $element, Component $newElement) : ?Component {
             $returnValue = null;
+
+//            echo "element: ";
+//            print_r($element);
+//            echo "newElement: ";
+//            print_r($newElement);
             
             if ($element != $newElement) {
                 if (in_array($element, $arr, true)) {

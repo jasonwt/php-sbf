@@ -35,7 +35,8 @@
     //            if (is_object($value)) {
 
 //                } else if (is_string($value)) {
-                    $returnValue .= str_repeat("\t", $indentLevel) . "VALUE      : " . print_r($value, true) . "\n";
+//                    $returnValue .= str_repeat("\t", $indentLevel) . "VALUE      : " . print_r($value, true) . "\n";
+                    $returnValue .= str_repeat("\t", $indentLevel) . str_replace("\n", "\n" . str_repeat("\t", $indentLevel+1) . "   ", "VALUE      : " . print_r($value, true));
   //              }
                 
             }
