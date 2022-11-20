@@ -30,13 +30,13 @@
                 if (is_string($v)) {
                     if (trim($v) != "")
                         $nonNullArgsCnt++;
-                } else {
+                } else if (!is_null($v)) {
                     $nonNullArgsCnt ++;
                 }
             }
 
             if ($nonNullArgsCnt!= count($backtrace["args"])) {
-                print_r(debug_backtrace());
+                //print_r(debug_backtrace());
                 print_r($arguments);
                 print_r($backtrace["args"]);
                 throw new \Exception();

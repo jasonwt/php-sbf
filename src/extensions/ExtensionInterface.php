@@ -9,6 +9,6 @@
     use sbf\components\ComponentInterface;
 
     interface ExtensionInterface extends ComponentInterface {
-        
+        public function CanExtensionCall(string $methodName, ?int $maxDepth = null);
     }
 ?>

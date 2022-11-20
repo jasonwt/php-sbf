@@ -70,15 +70,18 @@
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$component, $indentLevel]);
         }
 
-        public function GetComponentStructure() : string {
+        public function Dump($echoResults = true) : string {
             ComponentStartOfFunctionEvent::SEND();
 
             if ($this->parent == null)
                 return "";
 
-            
-
             $returnValue = $this->GetStructure($this->GetParent(), 0);
+
+            if ($echoResults)
+                echo $returnValue;
+
+            
 
             return ComponentEndOfFunctionEvent::SEND($returnValue);
         }        

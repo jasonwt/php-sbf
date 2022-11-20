@@ -92,7 +92,7 @@
             throw new \BadMethodCallException(get_class($this) . "::" . $methodName);
         }
 
-        public function CanCall(string $methodName) : bool {            
+        public function CanCall(string $methodName) : bool {
             ComponentStartOfFunctionEvent::SEND([&$methodName]);
 
             $canCall = false;
@@ -102,6 +102,9 @@
                 $canCall = $reflection->isPublic();
             }
 
+            foreach ($this->extensions as $extension)
+                $canCall = $canCall | $extension->CanExtensionCall($methodName,1);
+            
             return ComponentEndOfFunctionEvent::SEND($canCall, [$methodName]);
         }
 
@@ -193,15 +196,15 @@
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$extension]);
         }
 
-        protected function AddExtension(Extension $extension) : bool {
-            ComponentStartOfFunctionEvent::SEND([&$extension]);
+        protected function AddExtension(Extension $extension, string $beforeExtension = null) : bool {
+            ComponentStartOfFunctionEvent::SEND([&$extension, &$beforeExtension]);
 
-            $returnValue = $this->ObjectArrayAddElement($this->extensions, $extension);            
+            $returnValue = $this->ObjectArrayAddElement($this->extensions, $extension, $beforeExtension);            
 
             if ($returnValue)
                 $returnValue = $extension->InitExtension();            
 
-            return ComponentEndOfFunctionEvent::SEND($returnValue, [$extension]);
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$extension, $beforeExtension]);
         }
 
         protected function RemoveExtension(Extension $extension) : bool {
@@ -256,17 +259,17 @@
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$component]);
         }
 
-        protected function AddComponent(Component $component) : Component {
+        protected function AddComponent(Component $component, string $beforeComponent = null) : Component {
             if ($component instanceof Extension) {
                 $this->AddError(E_USER_ERROR, "Use AddExtension rather then AddComponent when adding extensions.");
                 return false;
             }
 
-            ComponentStartOfFunctionEvent::SEND([&$component]);
+            ComponentStartOfFunctionEvent::SEND([&$component, &$beforeComponent]);
 
-            $returnValue = $this->ObjectArrayAddElement($this->components, $component);                        
+            $returnValue = $this->ObjectArrayAddElement($this->components, $component, $beforeComponent);                        
 
-            return ComponentEndOfFunctionEvent::SEND($returnValue, [$component]);
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$component, $beforeComponent]);
         }
 
         protected function RemoveComponent(Component $component) : bool {
@@ -282,13 +285,35 @@
         */
 
         protected function SendEvent(ComponentEvent $event) {
-//            echo get_class($event->caller) . ":" . $event->caller->name . ":" . get_class($event) . ":" . $event->name . "\n";
+            
+//            if ($this->name == "asdf")
+  //              echo get_class($event->caller) . ":" . $event->caller->name . ":" . get_class($event) . ":" . $event->name . "\n";
             if (method_exists($this, "HandleEvent"))
                 $event->returnValue = $this->HandleEvent($event);
 
-            foreach (array_merge($this->components, $this->extensions) as $component)
-                $event->returnValue = $component->SendEvent($event);
-            
+            if ($event->callDepth >= 0) {
+                $mergedComponentsAndExtensions = array_merge($this->components, $this->extensions);
+
+                if (count($mergedComponentsAndExtensions) > 0) {
+                    $event->callDepth ++;
+
+                    foreach ($mergedComponentsAndExtensions as $component)
+                        $component->SendEvent($event);
+                    
+                    $event->callDepth --;
+                }
+            }
+        
+            if ($event->callDepth <= 0) {
+                if ($this->parent != null) {
+                    $event->callDepth --;
+
+                    $event->returnValue = $this->parent->SendEvent($event);
+
+                    $event->callDepth ++;
+                }
+            }            
+
             return $event->returnValue;
         }
 

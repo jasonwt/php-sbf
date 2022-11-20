@@ -23,19 +23,25 @@
             return ComponentEndOfFunctionEvent::SEND(true);
         }
 
-        protected function DisabledPublicCanCallMethods() : array {
-            ComponentStartOfFunctionEvent::SEND();
+        public function CanExtensionCall(string $methodName, ?int $maxDepth = null) {
+            ComponentStartOfFunctionEvent::SEND([&$methodName, &$maxDepth]);
 
-            return ComponentEndOfFunctionEvent::SEND([]);
-        }
+            $canCall = false;
 
-        public function CanCall(string $methodName) : bool {
-            ComponentStartOfFunctionEvent::SEND([&$methodName]);
+            if (!is_null($maxDepth)) {
+                if ($maxDepth < 0)
+                    return false;            
+            }
 
-            if (in_array($methodName, $this->DisabledPublicCanCallMethods()))
-                return ComponentEndOfFunctionEvent::SEND(false, [$methodName]);
+            if (method_exists($this, $methodName)) {
+                $reflection = new \ReflectionMethod($this, $methodName);
+                $canCall = $reflection->isPublic();
+            }
 
-            return ComponentEndOfFunctionEvent::SEND(parent::CanCall($methodName), [$methodName]);            
+            foreach ($this->extensions as $extension)
+                $canCall = $canCall | $extension->CanExtensionCall($methodName, (is_null($maxDepth) ? null : $maxDepth - 1));
+
+            return ComponentEndOfFunctionEvent::SEND($canCall, [$methodName, $maxDepth]);;
         }
     }
 ?>

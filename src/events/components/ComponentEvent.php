@@ -11,6 +11,7 @@
 
     class ComponentEvent extends Event {
         public $returnValue = null;
+        public $callDepth = 0;
 
         public function __construct(string $name, Component $caller, $returnValue, array $arguments = []) {
             parent::__construct($name, $caller, $arguments);

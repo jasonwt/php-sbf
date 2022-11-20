@@ -42,13 +42,33 @@
             return in_array($element, $arr, true);
         }
 
-        private function ObjectArrayAddElement(array &$arr, Component $element) : ?Component {
+        private function ObjectArrayAddElement(array &$arr, Component $element, ?string $beforeElement = null) : ?Component {
             if (!in_array($element, $arr, true)) {
                 if (!array_key_exists($element->GetName(), $arr)) {
-                    $arr[$element->GetName()] = $element;
-            
                     if (!is_null($componentsParent = $element->GetParent()))
                         $componentsParent->RemoveComponent($element);
+
+                    $newArray = [];
+
+                    foreach ($arr as $k => $v) {
+                        if ($beforeElement == $k)
+                            $newArray[$element->GetName()]  = $element;
+
+                        $newArray[$k] = $v;
+                    }
+
+                    if (count($newArray) == count($arr)) {
+                        $newArray[$element->GetName()] = $element;
+
+                        if (!is_null($beforeElement))
+                            $this->AddError(E_USER_WARNING, "beforeElement '$beforeElement' not found.");
+                    }
+
+                    $arr = $newArray;
+
+//                    $arr[$element->GetName()] = $element;
+            
+                    
 
                     $element->parent = $this;
 

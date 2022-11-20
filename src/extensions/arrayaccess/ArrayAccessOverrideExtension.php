@@ -2,12 +2,11 @@
     declare(strict_types=1);
 
     namespace sbf\extensions\arrayaccess;
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
     
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
-
-    use sbf\events\components\ComponentStartOfFunctionEvent;
-    use sbf\events\components\ComponentEndOfFunctionEvent;
 
     use sbf\components\Component;
     use sbf\extensions\Extension;
@@ -17,17 +16,18 @@
 
     use function sbf\debugging\dtprint;
 
-    class aGetSetOverrideExtension extends Extension {
-        protected $componentType = "";
+    class ArrayAccessOverrideExtension extends Extension {
+        protected $newComponentType = "";
         protected $setMethod = "";
         protected $getMethod = "";
 
-        public function __construct(string $name, string $setMethod, string $getMethod, string $componentType, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
+        public function __construct(string $name, string $setMethod, string $getMethod, string $newComponentType, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             parent::__construct($name, $components, $extensions, $errorHandler);
 
-            $this->setMethod = trim($setMethod);
-            $this->getMethod = trim($getMethod);
-            $this->componentType = trim($componentType);
+            $this->setMethod        = trim($setMethod);
+            $this->getMethod        = trim($getMethod);
+
+            $this->newComponentType = trim($newComponentType);
         }
 
         protected function HandleEvent(ComponentEvent $event) {
@@ -36,7 +36,7 @@
 
             if ($event->name == "offsetSet") {
                 if ($event instanceof ComponentStartOfFunctionEvent) {
-                    if (!$this->setMethod || !$this->componentType)
+                    if (!$this->setMethod || !$this->newComponentType)
                         return $event->returnValue;
 
                     $newComponent = null;
@@ -46,7 +46,7 @@
                     if (array_key_exists($offset, $this->components))
                         $newComponent = $event->caller->GetComponent($offset);                    
                     else
-                        $newComponent = new $this->componentType($offset);
+                        $newComponent = new $this->newComponentType($offset);
         
                     call_user_func([$newComponent, $this->setMethod], $value);
 
@@ -55,7 +55,7 @@
 
             } else if ($event->name == "offsetGet") {
                 if ($event instanceof ComponentEndOfFunctionEvent) {
-                    if (!$this->getMethod || !$this->componentType)
+                    if (!$this->getMethod || !$this->newComponentType)
                         return $event->returnValue;
 
                     $event->returnValue = call_user_func([$event->returnValue, $this->getMethod]);
