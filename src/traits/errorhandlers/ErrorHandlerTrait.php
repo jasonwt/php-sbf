@@ -1,12 +1,12 @@
 <?php
     declare (strict_types=1);
 
-    namespace sbf\errorhandler;
+    namespace sbf\traits\errorhandlers;
 
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use sbf\errorhandler\ErrorHandlerException;
+    use sbf\errorhandlers\ErrorHandlerException;
     use sbf\debugging\Debugging;
 
     trait ErrorHandlerTrait {

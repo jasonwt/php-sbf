@@ -7,7 +7,7 @@
     ini_set('display_errors', '1');
         
     use sbf\components\Component;
-    use sbf\errorhandler\ErrorHandler;
+    use sbf\errorhandlers\ErrorHandler;
     use sbf\extensions\Extension;
 
     use sbf\events\components\ComponentStartOfFunctionEvent;
@@ -71,19 +71,19 @@
         }
 
         public function Dump($echoResults = true) : string {
-            ComponentStartOfFunctionEvent::SEND();
+            $returnValue = "";
 
-            if ($this->parent == null)
-                return "";
+            if (ComponentStartOfFunctionEvent::SEND([&$echoResults]) !== false) {
+                if ($this->parent == null)
+                    return "";
 
-            $returnValue = $this->GetStructure($this->GetParent(), 0);
+                $returnValue = $this->GetStructure($this->GetParent(), 0);
 
-            if ($echoResults)
-                echo $returnValue;
-
+                if ($echoResults)
+                    echo $returnValue;
+            }
             
-
-            return ComponentEndOfFunctionEvent::SEND($returnValue);
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$echoResults]);
         }        
     }
 

@@ -1,15 +1,16 @@
 <?php
     declare(strict_types=1);
 
-    namespace sbf\components;
+    namespace sbf\traits\components\arrayaccess;
 
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
+    use sbf\components\Component;
     use sbf\events\components\ComponentEndOfFunctionEvent;
     use sbf\events\components\ComponentStartOfFunctionEvent;
 
-    trait ComponentArrayAccessTraits {
+    trait ArrayAccessComponentArrayAccessTraits {
         /**
          * Whether an offset exists
          * Whether or not an offset exists.
@@ -69,23 +70,8 @@
                 } else {
                     
                     if (array_key_exists($offset, $this->components)) {                    
-                        if ($this->options & self::ALLOW_SET_ON_FOUND || $this->options & self::ALLOW_SET) {                            
-                            if ($value != $this->components[$offset]) {
-                                if (!is_null($component = $this->GetComponent($offset))) {
-                                    $componentIndex = array_search($offset, array_keys($this->components));
-
-                                    if ($this->RemoveComponent($component) == false) {
-                                        $this->AddError(E_USER_ERROR, "this->RemoveComponent() failed.");
-                                    } else {
-                                        $insertIndex = (count($this->components) > 0 ? array_keys($this->components)[$componentIndex] : null);
-
-                                        if (!$this->AddComponent($value, $insertIndex))
-                                            $this->AddError(E_USER_ERROR, "this->AddComponent() failed.");                                        
-                                    }
-                                } else {
-                                    $this->AddError(E_USER_ERROR, "this->AddComponent($offset) failed.");
-                                }
-                            } 
+                        if ($this->options & self::ALLOW_SET_ON_FOUND || $this->options & self::ALLOW_SET) {
+                            $this->ReplaceComponentByName($offset, $value);
                         } else {
                             $this->AddError(E_USER_ERROR, "offsetSet() is not permitted for EXISTING components.");
                         }

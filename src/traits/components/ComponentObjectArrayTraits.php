@@ -1,7 +1,7 @@
 <?php
     declare(strict_types=1);
 
-    namespace sbf\components;
+    namespace sbf\traits\components;
 
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
@@ -40,6 +40,48 @@
 
         private function ObjectArrayElementExists(array &$arr, Component $element) : bool {
             return in_array($element, $arr, true);
+        }
+
+        private function ObjectArrayReplaceElementByName(array &$arr, string $name, Component $newElement) : ?Component {
+            if (array_key_exists($name, $arr))
+                return $this->ObjectArrayReplaceElement($arr, $arr[$name], $newElement);
+            
+            return null;
+        }
+
+        private function ObjectArrayReplaceElement(array &$arr, Component $element, Component $newElement) : ?Component {
+            $returnValue = null;
+            
+            if ($element != $newElement) {
+                if (in_array($element, $arr, true)) {
+                    if (!in_array($newElement, $arr, true)) {
+                        $newArray = [];                    
+
+                        foreach ($arr as $elementName => $elementValue) {
+                            if ($elementName == $element->name)
+                                $newArray[$newElement->name] = $newElement;
+                            else
+                                $newArray[$elementName] = $elementValue;
+                        }
+
+                        if ($this->RemoveComponent($element)) {
+                            $arr = $newArray;
+
+                            $returnValue = $newElement;
+                        } else {
+                            $this->AddError(E_USER_ERROR, "this->RemoveComponent() failed.");
+                        }                        
+                    } else {
+                        $this->AddError(E_USER_ERROR, "newElement already exists.");
+                    }                
+                } else {
+                    $this->AddError(E_USER_ERROR, "element does not exist.");
+                }
+            } else {
+                $this->AddError(E_USER_WARNING, "element and newElement are the same object");
+            }
+
+            return $returnValue;
         }
 
         private function ObjectArrayAddElement(array &$arr, Component $element, ?string $beforeElement = null) : ?Component {

@@ -6,13 +6,12 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use sbf\errorhandler\ErrorHandler;
+    use sbf\errorhandlers\ErrorHandler;
     use sbf\components\ComponentInterface;
     use sbf\extensions\Extension;
-    use sbf\components\ComponentObjectArrayTraits;
-    use sbf\components\ComponentArrayAccessTraits;
-    use sbf\components\ComponentCountableIteratorTraits;
-    use sbf\components\ComponentErrorTraits;
+    
+    use sbf\traits\components\ComponentObjectArrayTraits;
+    use sbf\traits\components\ComponentErrorTraits;
 
     use sbf\events\components\ComponentEvent;
     use sbf\events\components\ComponentStartOfFunctionEvent;
@@ -23,18 +22,9 @@
 
     class Component implements ComponentInterface {
         use ComponentObjectArrayTraits;
-        use ComponentArrayAccessTraits;
-        use ComponentCountableIteratorTraits;
         use ComponentErrorTraits;
 
-        const ALLOW_SET              = 1;
-        const ALLOW_SET_ON_FOUND     = 2;
-        const ALLOW_SET_ON_NOT_FOUND = 4;
-        const ALLOW_UNSET            = 8;
-        const ALLOW_GET              = 16;
-
-        protected $iteratorIndex = 0;
-        protected $options = 31;
+        
         protected $name = "";
         protected ?Component $parent = null;
         protected array $components = [];
@@ -196,16 +186,40 @@
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$extension]);
         }
 
-        protected function AddExtension(Extension $extension, string $beforeExtension = null) : bool {
+        protected function ReplaceExtension(Extension $extension, Extension $newExtension) : ?Component {
+            ComponentStartOfFunctionEvent::SEND([&$extension, &$newExtension]);
+
+            $returnValue = $this->ObjectArrayReplaceElement($this->extensions, $extension, $newExtension);            
+
+            if ($returnValue)
+                $returnValue = $newExtension->InitExtension();            
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$extension, $newExtension]);
+        }
+
+        protected function ReplaceExtensionByName(string $name, Extension $newExtension) : ?Component {
+            ComponentStartOfFunctionEvent::SEND([&$name, &$newExtension]);
+
+            $returnValue = $this->ObjectArrayReplaceElementByName($this->extensions, $name, $newExtension);            
+
+            if ($returnValue)
+                $returnValue = $newExtension->InitExtension();            
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$name, $newExtension]);
+        }
+
+        protected function AddExtension(Extension $extension, string $beforeExtension = null) : ?Component {
             ComponentStartOfFunctionEvent::SEND([&$extension, &$beforeExtension]);
 
             $returnValue = $this->ObjectArrayAddElement($this->extensions, $extension, $beforeExtension);            
 
-            if ($returnValue)
-                $returnValue = $extension->InitExtension();            
+            if (!is_null($returnValue))
+                $returnValue = (!$extension->InitExtension() ? null : $returnValue);
 
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$extension, $beforeExtension]);
         }
+
+        
 
         protected function RemoveExtension(Extension $extension) : bool {
             ComponentStartOfFunctionEvent::SEND([&$extension]);
@@ -259,10 +273,28 @@
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$component]);
         }
 
-        protected function AddComponent(Component $component, string $beforeComponent = null) : Component {
+
+        protected function ReplaceComponent(Component $component, Component $newComponent) : ?Component {
+            ComponentStartOfFunctionEvent::SEND([&$component, &$newComponent]);
+
+            $returnValue = $this->ObjectArrayReplaceElement($this->components, $component, $newComponent);                      
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$component, $newComponent]);
+        }
+
+        protected function ReplaceComponentByName(string $name, Component $newComponent) : ?Component {
+            ComponentStartOfFunctionEvent::SEND([&$name, &$newComponent]);
+
+            $returnValue = $this->ObjectArrayReplaceElementByName($this->components, $name, $newComponent);                      
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$name, $newComponent]);
+        }
+
+
+        protected function AddComponent(Component $component, string $beforeComponent = null) : ?Component {
             if ($component instanceof Extension) {
                 $this->AddError(E_USER_ERROR, "Use AddExtension rather then AddComponent when adding extensions.");
-                return false;
+                return null;
             }
 
             ComponentStartOfFunctionEvent::SEND([&$component, &$beforeComponent]);

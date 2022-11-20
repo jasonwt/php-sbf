@@ -10,5 +10,9 @@
 
     interface ExtensionInterface extends ComponentInterface {
         public function CanExtensionCall(string $methodName, ?int $maxDepth = null);
+
+        public function Disable() : bool;
+        public function Enable() : bool;
+        public function IsEnabled() : bool;
     }
 ?>
