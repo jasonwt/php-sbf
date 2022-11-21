@@ -2,22 +2,15 @@
     declare(strict_types=1);
 
     namespace sbf\components\arrayaccess;
-    use CompileError;
-    
-    
     
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
     use sbf\components\Component;
-    use sbf\components\value\ValueComponent;
     use sbf\components\arrayaccess\ArrayAccessComponentInterface;
     use sbf\events\components\ComponentStartOfFunctionEvent;
     use sbf\events\components\ComponentEndOfFunctionEvent;
-
-    use function sbf\debugging\dtprint;
     
-
     class ArrayAccessComponent extends Component implements ArrayAccessComponentInterface {
         const ALLOW_SET             = 1;
         const ALLOW_SET_ON_NEW      = 2;
@@ -44,9 +37,6 @@
 
             $returnValue = $this->offsetGetMethod;
 
-//            if ($returnValue == "" && $component instanceof ValueComponent)
-  //              $returnValue = "GetValue";
-
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$component]);
         }
 
@@ -54,9 +44,6 @@
             ComponentStartOfFunctionEvent::SEND([&$component]);
 
             $returnValue = $this->offsetSetMethod;
-
-    //        if ($returnValue == "" && $component instanceof ValueComponent)
-      //          $returnValue = "SetValue";
 
             return ComponentEndOfFunctionEvent::SEND($returnValue, [$component]);
         }
@@ -275,14 +262,7 @@
          * @return int The custom count as an `int`.
          */
         public function count() {
-            return count(
-                array_filter(
-                    //$this->GetComponents("\\sbf\\components\\Component"), 
-                    $this->components,
-                    function ($v, $k) { return !($v instanceof Extension);}, 
-                    ARRAY_FILTER_USE_BOTH
-                )
-            );            
+            return count($this->components);            
         }
     }
     

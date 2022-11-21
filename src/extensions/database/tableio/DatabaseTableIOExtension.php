@@ -12,8 +12,17 @@
     
 
     class DatabaseTableIOExtension extends Extension implements DatabaseTableIOExtensionInterface {
-        public function __construct(string $name, string $tableName, $components = null, $extensions = null, $errorHandler = null) {
+        protected string $databaseName = "";
+        protected string $tableName = "";
 
+        public function __construct(string $name, string $databaseName, string $tableName, $components = null, $extensions = null, $errorHandler = null) {
+            parent::__construct($name, $components, $extensions, $errorHandler);
+
+            if (($this->databaseName = trim($databaseName)) == "")
+                $this->AddError(E_USER_ERROR, "databaseName must be a valid database name.");
+
+            if (($this->tableName = trim($tableName)) == "")
+                $this->AddError(E_USER_ERROR, "tableName must be a valid table name.");
         }
     }
 

@@ -37,22 +37,7 @@
     use sbf\extensions\Extension;
     use sbf\extensions\ExtensionInterface;
 
-    interface AddComponentsFromDatabaseExtensionInterface extends ExtensionInterface {
-
-    }
-    
-    class AddComponentsFromDatabaseExtension extends Extension implements AddComponentsFromDatabaseExtensionInterface {
-        protected string $defaultComponentClass = "";
-        protected array $nameKeyClassValueArray = [];
-        public function __construct(string $name, string $defaultComponentClass, array $nameKeyClassValueArray = [], $components = null, $extensions = null, $errorHandler = null) {
-            parent::__construct($name, $components, $extensions, $errorHandler);
-
-            $this->defaultComponentClass = $defaultComponentClass;
-            $this->nameKeyClassValueArray = $nameKeyClassValueArray;
-
-        }
-
-    }
+    use sbf\extensions\database\tableio\DatabaseTableIOExtension;
 
 
 
@@ -61,15 +46,7 @@
         "form", 
         null, 
         [
-            new DebuggingExtension("debuggingExtension"),
-            new AddComponentsFromDatabaseExtension(
-                "addComponentsFromDatabaseExtension",
-                "\\sbf\\components\\html\\elements\\form\\input\\text\\FormInputTextElement",
-                [],
-                null,
-                null,
-                null
-            )
+            new DebuggingExtension("debuggingExtension")
         ]
     );
 

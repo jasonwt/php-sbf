@@ -1,18 +1,18 @@
 <?php
     declare(strict_types=1);
     
-    namespace sbf\extensions\database\link\mysqli;
+    namespace sbf\extensions\database\connection\mysqli;
     
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
     use sbf\errorhandlers\ErrorHandler;
     
-    use sbf\extensions\database\link\DatabaseLinkExtension;
-    use sbf\extensions\database\link\mysqli\MysqliDatabaseLinkResults;
-    use sbf\extensions\database\link\mysqli\MysqliDatabaseLinkExtensionInterface;
+    use sbf\extensions\database\connection\DatabaseConnectionExtension;
+    use sbf\extensions\database\connection\mysqli\MysqliDatabaseConnectionResults;
+    use sbf\extensions\database\connection\mysqli\MysqliDatabaseConnectionExtensionInterface;
 
-    class MysqliDatabaseLinkExtension extends DatabaseLinkExtension implements MysqliDatabaseLinkExtensionInterface {              
+    class MysqliDatabaseConnectionExtension extends DatabaseConnectionExtension implements MysqliDatabaseConnectionExtensionInterface {              
         private ?\mysqli $mysqliLink = null;
 
         public function __construct(string $name, string $hostName = "", string $userName = "", string $password = "", string $database = "", int $port = 0, string $socket = "", $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
@@ -106,7 +106,7 @@
             return $returnStatus;
         }
 // 
-        public function Query(string $query, int $resultsMode = self::RESULTS_MODE_STORE) : ?MysqliDatabaseLinkResults {            
+        public function Query(string $query, int $resultsMode = self::RESULTS_MODE_STORE) : ?MysqliDatabaseConnectionResults {            
             if (!in_array($resultsMode, $this->GetAvailableResultModes())) {
                 $this->AddError(E_USER_WARNING, "Invalid resultsMode '$resultsMode'.  Using RESULTS_MODE_STORE.");
                 $resultsMode = self::RESULTS_MODE_STORE;
@@ -120,7 +120,7 @@
                 return null;
             }
 
-            return new MysqliDatabaseLinkResults($this, $mysqliResults, $this->errorHandler);
+            return new MysqliDatabaseConnectionResults($this, $mysqliResults, $this->errorHandler);
 
 //            return (is_bool($mysqliResults) ? $mysqliResults : new MysqliDatabaseResults($mysqliResults));
         }

@@ -30,7 +30,7 @@
                 $returnValue .= str_repeat("\t", $indentLevel) . "PARENT     : " . $component->GetParent()->GetName() . "\n";
 
             if (method_exists($component, "GetValue")) {
-                $value = $component->GetValue();
+                $value = call_user_func([$component, "GetValue"]);
 
     //            if (is_object($value)) {
 

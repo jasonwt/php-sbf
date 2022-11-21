@@ -68,16 +68,25 @@
                 }
             }
         }
-
+ 
         public function __call(string $methodName, array $arguments) {
             if ($methodName == "SendEvent" && count($backtrace = debug_backtrace()) > 1)
                 if (isset($backtrace[1]["object"]) && $backtrace[1]["object"] instanceof ComponentEvent)
                     return $this->SendEvent($arguments[0]);                                                
                     
+            $extensionToCall = null;
+
             foreach ($this->extensions as $extensionName => $extension) {
-                if ($extension->CanCall($methodName))
-                    return call_user_func_array([$extension, $methodName], $arguments);
+                if ($extension->CanCall($methodName)) {
+                    if (is_null($extensionToCall))
+                        $extensionToCall = $extension;
+                    else if ($extension->GetCanCallPriority() > $extensionToCall->GetCanCallPriority())
+                        $extensionToCall = $extension;
+                }
             }
+
+            if (!is_null($extensionToCall))
+                return call_user_func_array([$extensionToCall, $methodName], $arguments);
 
             throw new \BadMethodCallException(get_class($this) . "::" . $methodName);
         }

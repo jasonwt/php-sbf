@@ -1,20 +1,20 @@
 <?php
     declare(strict_types=1);
     
-    namespace sbf\extensions\database\link\mysqli;
+    namespace sbf\extensions\database\connection\mysqli;
 
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
     use sbf\errorhandlers\ErrorHandler;
 
-    use sbf\extensions\database\link\DatabaseLinkResults;
-    use sbf\extensions\database\link\mysqli\MysqliDatabaseLinkExtension;
-    use sbf\extensions\database\link\mysqli\MysqliDatabaseLinkResultsInterface;
+    use sbf\extensions\database\connection\DatabaseConnectionResults;
+    use sbf\extensions\database\connection\mysqli\MysqliDatabaseConnectionExtension;
+    use sbf\extensions\database\connection\mysqli\MysqliDatabaseConnectionResultsInterface;
 
-    class MysqliDatabaseLinkResults extends DatabaseLinkResults implements MysqliDatabaseLinkResultsInterface {
+    class MysqliDatabaseConnectionResults extends DatabaseConnectionResults implements MysqliDatabaseConnectionResultsInterface {
         protected \mysqli_result $mysqliResults;
-        public function __construct(MysqliDatabaseLinkExtension $databaseInterface, \mysqli_result $mysqliResults, ?ErrorHandler $errorHandler = null) {
+        public function __construct(MysqliDatabaseConnectionExtension $databaseInterface, \mysqli_result $mysqliResults, ?ErrorHandler $errorHandler = null) {
             parent::__construct($databaseInterface, $errorHandler);
 
             $this->mysqliResults = $mysqliResults;

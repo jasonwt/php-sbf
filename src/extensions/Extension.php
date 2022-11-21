@@ -16,6 +16,10 @@
     class Extension extends Component implements ExtensionInterface {
         protected $enabled = true;
 
+        static public function GetCanCallPriority() : int {
+            return 0;
+        }
+
         public function __construct(string $name, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             parent::__construct($name, $components, $extensions, $errorHandler);
         }

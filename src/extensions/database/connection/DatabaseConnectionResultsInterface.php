@@ -1,12 +1,12 @@
 <?php
     declare(strict_types=1);
     
-    namespace sbf\extensions\database\link;
+    namespace sbf\extensions\database\connection;
 
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    interface DatabaseLinkResultsInterface {
+    interface DatabaseConnectionResultsInterface {
         const FETCH_MODE_BOTH = 0;
         const FETCH_MODE_ASSOC = 1;
         const FETCH_MODE_NUM = 2;

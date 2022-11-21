@@ -9,6 +9,8 @@
     use sbf\components\ComponentInterface;
 
     interface ExtensionInterface extends ComponentInterface {
+        static public function GetCanCallPriority() : int;
+
         public function CanExtensionCall(string $methodName, ?int $maxDepth = null);
 
         public function Disable() : bool;

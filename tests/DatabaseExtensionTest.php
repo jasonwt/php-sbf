@@ -20,7 +20,7 @@
 
     use function sbf\debugging\dtprint;
 
-    use sbf\extensions\database\link\mysqli\MysqliDatabaseLinkExtension;
+    use sbf\extensions\database\connection\mysqli\MysqliDatabaseConnectionExtension;
 
 /*    
     $htmlElement = new ValueComponentArray(
@@ -53,7 +53,7 @@
     dtprint($htmlElement->GetComponentStructure());
 */
 
-$dbExtension = new MysqliDatabaseLinkExtension(
+$dbExtension = new MysqliDatabaseConnectionExtension(
     "mysqliDatabaseExtension",
     $databaseLogin["hostName"],
     $databaseLogin["userName"],
