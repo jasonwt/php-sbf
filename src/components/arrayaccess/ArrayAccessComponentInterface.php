@@ -8,6 +8,6 @@
 
     use sbf\components\ComponentInterface;
 
-    interface ArrayAccessComponentInterface extends ComponentInterface, \ArrayAccess {    
+    interface ArrayAccessComponentInterface extends ComponentInterface, \ArrayAccess, \Iterator, \Countable {    
     }
 ?>
