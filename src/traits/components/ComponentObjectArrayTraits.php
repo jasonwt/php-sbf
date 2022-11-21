@@ -10,7 +10,7 @@
 
     trait ComponentObjectArrayTraits {
         private function GetObjectArrayElementCount(array &$arr, string $objectType = "") : int {
-            return count($arr);
+            return count($this->GetObjectArrayElements($arr, $objectType));
         }
 
         private function GetObjectArrayElementKeys(array &$arr, string $objectType = "") : array {   

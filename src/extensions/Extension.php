@@ -13,7 +13,7 @@
     use sbf\events\components\ComponentStartOfFunctionEvent;
     use sbf\events\components\ComponentEndOfFunctionEvent;
 
-    class Extension extends Component implements ExtensionInterface {
+    abstract class Extension extends Component implements ExtensionInterface {
         protected $enabled = true;
 
         static public function GetCanCallPriority() : int {
@@ -22,6 +22,12 @@
 
         public function __construct(string $name, $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             parent::__construct($name, $components, $extensions, $errorHandler);
+
+            
+        }
+
+        public function GetRequiredExtensions() : array {
+            return [];
         }
 
         public function Disable() : bool {
@@ -63,6 +69,33 @@
 
         protected function InitExtension() : bool {
             ComponentStartOfFunctionEvent::SEND();
+
+            $requiredDependencyExtensions = $this->GetRequiredExtensions();
+
+            if (count($requiredDependencyExtensions) > 0 && is_null($this->parent)) {
+                $this->AddError(E_USER_ERROR, "a parent is required for extensions with required dependencies extensions.");
+            } else {
+                foreach ($this->GetRequiredExtensions() as $requiredExtensionClassName => $requiredExtensionInfo) {
+                    $exactExtensionClassName = $requiredExtensionInfo["exactExtensionClassName"];
+                    $attemptToAutoLoad       = $requiredExtensionInfo["attemptToAutoLoad"];        
+                    
+                    if ($this->parent->GetExtensionsCount($requiredExtensionClassName) == 0) {
+                        if ($attemptToAutoLoad) {
+                            
+                            if (is_null($this->parent->AddExtension(new $requiredExtensionClassName(strtoupper($requiredExtensionClassName))))) {
+                                $this->AddError(E_USER_ERROR, "autoload required extension '$requiredExtensionClassName' failed.");    
+                            } else {
+                                //$this->AddError(E_USER_WARNING, "autoloaded required extension '$requiredExtensionClassName'.");
+                            }
+                        } else {
+                            $this->AddError(E_USER_ERROR, "required extension '$requiredExtensionClassName' is not loaded.");
+                        }                     
+                            echo $requiredExtensionClassName . ":" . $exactExtensionClassName . ":" . $attemptToAutoLoad . "\n";
+                    } else {
+                        echo $this->parent->GetExtensionsCount($requiredExtensionClassName);
+                    }
+                }
+            }
 
             return ComponentEndOfFunctionEvent::SEND(true);
         }

@@ -30,6 +30,21 @@
         public function GetTestValue() : string {
             return "1";
         }      
+    	/**
+         * @return string
+         */
+        public function GetVersion(): string {
+            return ("0.0.1");
+        }
+
+        public function GetRequiredExtensions() : array {
+            return [
+                "TestExtension2" => [
+                    "exactExtensionClassName" => false,
+                    "attemptToAutoLoad" => true
+                ]
+            ];
+        }
     }
 
     interface TestExtention2Interface extends ExtensionInterface {
@@ -41,18 +56,31 @@
             return TestExtension1::GetCanCallPriority() + 1;
         }
 
+        /**
+         * @return string
+         */
+        public function GetVersion(): string {
+            return ("0.0.2");
+        }
+
         public function GetTestValue() : string {
             return "2";
         }      
     }
 
+    class testComponent extends Component {
+        public function __construct(string $name, $components = null, $extensions = null, $errorHandler = null) {
+            parent::__construct($name, $components, $extensions, $errorHandler);
+
+        }
+    }
     $com = new Component(
         "testComponent",
         null,
         [
             new DebuggingExtension("debuggingExtension"),
-            new TestExtension1("testExtension1"),
-            new TestExtension2("testExtension2")
+            new TestExtension1("testExtension1")/*,
+            new TestExtension2("testExtension2")*/
         ]
     );
 

@@ -19,6 +19,10 @@
             parent::__construct($name, $hostName, $userName, $password, $database, $port, $socket, $components, $extensions, $errorHandler);
         }
 
+        public function GetVersion() : string {
+            return ("1.0.0");
+        }
+
         protected function GetAvailableResultModes() : array {
             return [
                 "RESULTS_MODE_STORE"      => self::RESULTS_MODE_STORE,

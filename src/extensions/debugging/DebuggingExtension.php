@@ -18,6 +18,10 @@
             parent::__construct($name, $components, $extensions, $errorHandler);
         }
 
+        public function GetVersion() : string {
+            return ("1.0.0");
+        }
+
         protected function GetStructure(Component $component, int $indentLevel) : string {
             ComponentStartOfFunctionEvent::SEND([&$component, &$indentLevel]);
 
@@ -28,6 +32,9 @@
 
             if (!is_null($component->GetParent()))
                 $returnValue .= str_repeat("\t", $indentLevel) . "PARENT     : " . $component->GetParent()->GetName() . "\n";
+
+            if (method_exists($component, "GetVersion"))
+                $returnValue .= str_repeat("\t", $indentLevel) . "VERSION    : " . call_user_func([$component, "GetVersion"]) . "\n";
 
             if (method_exists($component, "GetValue")) {
                 $value = call_user_func([$component, "GetValue"]);

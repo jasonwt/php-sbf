@@ -24,6 +24,10 @@
             if (($this->tableName = trim($tableName)) == "")
                 $this->AddError(E_USER_ERROR, "tableName must be a valid table name.");
         }
+
+        public function GetVersion() : string {
+            return ("0.0.0");
+        }
     }
 
 ?>
