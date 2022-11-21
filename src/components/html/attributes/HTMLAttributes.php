@@ -16,7 +16,7 @@
             $this->AddComponent(new HTMLAttribute("name"));
             $this->AddComponent(new HTMLAttribute("id"));
             $this->AddComponent(new HTMLAttribute("class"));
-            $this->AddComponent(new HTMLAttribute("style"));
+/*            $this->AddComponent(new HTMLAttribute("style"));
             $this->AddComponent(new HTMLAttribute("hidden"));
             $this->AddComponent(new HTMLAttribute("title"));
 
@@ -28,6 +28,7 @@
             $this->AddComponent(new HTMLAttribute("lang"));
             $this->AddComponent(new HTMLAttribute("spellcheck"));
             $this->AddComponent(new HTMLAttribute("tabindex"));
+*/            
         }
     }
 ?>

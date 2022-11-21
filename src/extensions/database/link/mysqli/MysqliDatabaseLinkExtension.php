@@ -1,19 +1,18 @@
 <?php
     declare(strict_types=1);
     
-    namespace sbf\extensions\database\mysqli;
+    namespace sbf\extensions\database\link\mysqli;
     
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
     use sbf\errorhandlers\ErrorHandler;
     
-    use sbf\extensions\database\DatabaseExtension;
-    use sbf\extensions\database\mysqli\MysqliDatabaseResults;
+    use sbf\extensions\database\link\DatabaseLinkExtension;
+    use sbf\extensions\database\link\mysqli\MysqliDatabaseLinkResults;
+    use sbf\extensions\database\link\mysqli\MysqliDatabaseLinkExtensionInterface;
 
-    class MysqliDatabaseExtension extends DatabaseExtension {
-        const RESULTS_MODE_USE_RESULT = 1;
-        const RESULTS_MODE_ASYNC = 2;                  
+    class MysqliDatabaseLinkExtension extends DatabaseLinkExtension implements MysqliDatabaseLinkExtensionInterface {              
         private ?\mysqli $mysqliLink = null;
 
         public function __construct(string $name, string $hostName = "", string $userName = "", string $password = "", string $database = "", int $port = 0, string $socket = "", $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
@@ -107,7 +106,7 @@
             return $returnStatus;
         }
 // 
-        public function Query(string $query, int $resultsMode = self::RESULTS_MODE_STORE) : ?MysqliDatabaseResults {            
+        public function Query(string $query, int $resultsMode = self::RESULTS_MODE_STORE) : ?MysqliDatabaseLinkResults {            
             if (!in_array($resultsMode, $this->GetAvailableResultModes())) {
                 $this->AddError(E_USER_WARNING, "Invalid resultsMode '$resultsMode'.  Using RESULTS_MODE_STORE.");
                 $resultsMode = self::RESULTS_MODE_STORE;
@@ -121,7 +120,7 @@
                 return null;
             }
 
-            return new MysqliDatabaseResults($this, $mysqliResults, $this->errorHandler);
+            return new MysqliDatabaseLinkResults($this, $mysqliResults, $this->errorHandler);
 
 //            return (is_bool($mysqliResults) ? $mysqliResults : new MysqliDatabaseResults($mysqliResults));
         }

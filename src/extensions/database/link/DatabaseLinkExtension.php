@@ -1,7 +1,7 @@
 <?php
     declare(strict_types=1);
 
-    namespace sbf\extensions\database;    
+    namespace sbf\extensions\database\link;    
 
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
@@ -9,9 +9,9 @@
     use sbf\errorhandlers\ErrorHandler;
     use sbf\extensions\Extension;
 
-    use sbf\extensions\database\DatabaseExtensionInterface;
+    use sbf\extensions\database\link\DatabaseLinkExtensionInterface;
 
-    abstract class DatabaseExtension extends Extension implements DatabaseExtensionInterface {
+    abstract class DatabaseLinkExtension extends Extension implements DatabaseLinkExtensionInterface {
         public function __construct(string $name, string $hostName = "", string $userName = "", string $password = "", string $database = "", int $port = 0, string $socket = "", $components = null, $extensions = null, ?ErrorHandler $errorHandler = null) {
             parent::__construct($name, $components, $extensions, $errorHandler);
 

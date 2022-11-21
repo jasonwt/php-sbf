@@ -1,21 +1,21 @@
 <?php
     declare(strict_types=1);
     
-    namespace sbf\extensions\database;
+    namespace sbf\extensions\database\link;
 
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use sbf\extensions\database\DatabaseExtensionInterface;
-    use sbf\extensions\database\DatabaseResultsInterface;
+    use sbf\extensions\database\link\DatabaseLinkExtensionInterface;
+    use sbf\extensions\database\link\DatabaseLinkResultsInterface;
 
     use sbf\errorhandlers\ErrorHandler;
 
-    abstract class DatabaseResults implements DatabaseResultsInterface {
+    abstract class DatabaseLinkResults implements DatabaseLinkResultsInterface {
         protected ErrorHandler $errorHandler;
-        protected DatabaseExtensionInterface $databaseInterface;
+        protected DatabaseLinkExtensionInterface $databaseInterface;
 
-        public function __construct(DatabaseExtensionInterface $databaseInterface, ?ErrorHandler $errorHandler = null) {
+        public function __construct(DatabaseLinkExtensionInterface $databaseInterface, ?ErrorHandler $errorHandler = null) {
             $this->errorHandler = (is_null($errorHandler) ? new ErrorHandler() : $errorHandler);
 
             $this->databaseInterface = $databaseInterface;

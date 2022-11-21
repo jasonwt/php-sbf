@@ -11,6 +11,9 @@
     interface HTMLElementInterface extends ArrayAccessComponentInterface {
         public function GetInnerHTML() : string;
         public function GetTag() : string;
+        public function GetHTML() : string;
+        public function GetOpeningHTML() : string;
+        public function GetClosingHTML() : string;
     }
     
 ?>

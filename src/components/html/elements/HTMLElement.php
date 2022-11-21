@@ -30,6 +30,23 @@
 
             return implode(" ", $innerHTMLArray);
         }
+
+        public function GetOpeningHTML() : string {
+            return "<" . $this->GetTag() . " " . $this->GetInnerHTML() . ">";
+        }
+
+        public function GetClosingHTML() : string {
+            return "</" . $this->GetTag() . ">";
+        }
+
+        public function GetHTML() : string {
+            $returnValue = $this->GetOpeningHTML() . "\n";
+
+            if (($closingHTML = $this->GetClosingHTML()) != "")
+                $returnValue .= $closingHTML . "\n";
+
+            return $returnValue;
+        }
     }
 
 ?>

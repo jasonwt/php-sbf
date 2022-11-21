@@ -7,7 +7,7 @@
     ini_set('display_errors', '1');
 
     use sbf\components\Component;
-    use sbf\errorhandler\ErrorHandler;
+    use sbf\errorhandlers\ErrorHandler;
 
     use sbf\events\components\ComponentEvent;
     use sbf\events\components\ComponentStartOfFunctionEvent;

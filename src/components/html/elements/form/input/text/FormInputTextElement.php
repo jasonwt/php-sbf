@@ -10,7 +10,11 @@
     use sbf\components\html\elements\form\input\text\FormInputTextElementInterface;
 
     class FormInputTextElement extends FormInputElement implements FormInputTextElementInterface {
-    	
+    	public function __construct(string $name, $components = null, $extensions = null, $errorHandler = null) {
+            parent::__construct($name, $components, $extensions, $errorHandler);
+
+            $this->GetComponent("attributes")->GetComponent("type")->SetValue("text");
+        }
     }
 
 ?>
