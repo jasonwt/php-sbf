@@ -10,6 +10,9 @@
     use sbf\components\arrayaccess\ArrayAccessComponent;
     use sbf\components\html\elements\HTMLElementInterface;
 
+    use sbf\events\components\ComponentStartOfFunctionEvent;
+    use sbf\events\components\ComponentEndOfFunctionEvent;
+
     abstract class HTMLElement extends ArrayAccessComponent implements HTMLElementInterface {
         public function __construct(string $name, $components = null, $extensions = null, $errorHandler = null) {
             parent::__construct($name, null, null, null, $components, $extensions, $errorHandler);
@@ -18,6 +21,35 @@
 
             $this->GetComponent("attributes")->GetComponent("name")->SetValue($name);
             $this->GetComponent("attributes")->GetComponent("id")->SetValue($name);
+        }
+
+        public function SetAttributeValue(string $attributeName, $attributeValue) : ?HTMLElement {
+            $returnValue = null;
+
+            if (ComponentStartOfFunctionEvent::SEND([&$attributeName, &$attributeValue]) !== false) {
+                if (!in_array($attributeName, $this->GetComponent("attributes")->GetComponentNames())) {
+                    $this->AddError(E_USER_ERROR, "attributeName '$attributeName' does not exist.");
+                    $returnValue = null;
+                } else {
+                    $this->GetComponent("attributes")->GetComponent($attributeName)->SetValue($attributeValue);
+                    $returnValue = $this;
+                }
+            }
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$attributeName, $attributeValue]);
+        }
+
+        public function GetAttributeValue(string $attributeName) {
+            $returnValue = null;
+
+            if (ComponentStartOfFunctionEvent::SEND([&$attributeName]) !== false) {
+                if (!in_array($attributeName, $this->GetComponent("attributes")->GetComponentNames()))
+                    $this->AddError(E_USER_ERROR, "attributeName '$attributeName' does not exist.");
+                else
+                    $returnValue = $this->GetComponent("attributes")->GetComponent($attributeName)->GetValue();
+            }
+
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$attributeName]);
         }
 
         public function GetInnerHTML() : string {

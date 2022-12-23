@@ -14,6 +14,8 @@
         public function GetHTML() : string;
         public function GetOpeningHTML() : string;
         public function GetClosingHTML() : string;
+        public function SetAttributeValue(string $attributeName, $attributeValue) : ?HTMLElement;
+        public function GetAttributeValue(string $attributeName);
     }
     
 ?>

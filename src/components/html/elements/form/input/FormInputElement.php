@@ -2,20 +2,19 @@
     declare(strict_types=1);    
 
     namespace sbf\components\html\elements\form\input;
-    use sbf\components\html\attributes\HTMLAttribute;
-
+    
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use sbf\components\html\elements\form\FormElement;
+    use sbf\components\html\attributes\HTMLAttribute;
+    use sbf\components\html\elements\form\FormValueElement;
     use sbf\components\html\elements\form\input\FormInputElementInterface;
 
-    abstract class FormInputElement extends FormElement implements FormInputElementInterface {
-        public function __construct(string $name, $components = null, $extensions = null, $errorHandler = null) {
-            parent::__construct($name, $components, $extensions, $errorHandler);
+    abstract class FormInputElement extends FormValueElement implements FormInputElementInterface {
+        public function __construct(string $name, string $value = "", $components = null, $extensions = null, $errorHandler = null) {
+            parent::__construct($name, $value, $components, $extensions, $errorHandler);
 
             $this->GetComponent("attributes")->AddComponent(new HTMLAttribute("type"), "name");
-            $this->GetComponent("attributes")->AddComponent(new HTMLAttribute("value"), "id");
         }
         /**
          * @return string

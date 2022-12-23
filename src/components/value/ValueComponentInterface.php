@@ -10,6 +10,6 @@
 
     interface ValueComponentInterface extends ComponentInterface {
         public function GetValue();
-        public function SetValue($value);
+        public function SetValue($value) : ?ValueComponentInterface;
     }
 ?>

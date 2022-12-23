@@ -3,6 +3,11 @@
         "psr-4": {
             "sbf\\": "src/"
         },
-        "files": ["src/debugging/Debugging.php"]
+        "files": [
+            "src/debugging/Debugging.php",
+            "src/includes/gets/globals.php",
+            "src/includes/gets/datetime.php",
+            "src/includes/gets/locale.php"
+	    ]
     }
 }

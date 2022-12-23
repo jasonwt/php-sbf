@@ -29,12 +29,15 @@
             return ComponentEndOfFunctionEvent::SEND($this->value);
         }
 
-        public function SetValue($value) {
-            ComponentStartOfFunctionEvent::SEND([&$value]);
+        public function SetValue($value) : ?ValueComponentInterface {
+            $returnValue = null;
 
-            $this->value = $value;
+            if ((ComponentStartOfFunctionEvent::SEND([&$value])) !== false) {
+                $this->value = $value;
+                $returnValue = $this;
+            }
 
-            return ComponentEndOfFunctionEvent::SEND(null, [$value]);
+            return ComponentEndOfFunctionEvent::SEND($returnValue, [$value]);
         }
     }
 
